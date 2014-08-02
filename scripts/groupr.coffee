@@ -38,7 +38,8 @@ module.exports = (robot) ->
     two = msg.match[2]
     three = msg.match[3]
     msg_full = msg.match
-    msg.send "#{one}, #{two}, #{three}, #{msg_full} #{replyf}"
+    msg.send "#{one}, #{two}, #{three}, #{msg_full}"
+    msg.send "#{reply} #{msg}"
 
   robot.respond /groupr split (\d+)/, (msg) ->
     groups = []
