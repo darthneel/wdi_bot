@@ -38,7 +38,7 @@ module.exports = (robot) ->
     two = msg.match[2]
     three = msg.match[3]
     msg_full = msg.match
-    msg.send "#{one}, #{two}, #{three}, #{msg_full}"
+    msg.send "#{one}, #{two}, #{three}, #{msg_full} #{replyf}"
 
   robot.respond /groupr split (\d+)/, (msg) ->
     groups = []
@@ -47,7 +47,8 @@ module.exports = (robot) ->
     for i in [0..group_num] by 1
       num = group_size
       group_arr = while num -= 1
+        _.shuffle(student_arr)
         students_arr.pop()
       groups.push(group_arr)
-    msg.send "#{groups[1]}"
-    msg.send "#{groups[2]}"  
+    num = 1
+    # _.each groups
