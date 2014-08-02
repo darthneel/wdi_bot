@@ -4,28 +4,13 @@ students_arr = ['Clayton Albachteh', 'Joe Biggica', 'Jeffrey Campomanes', 'Nasta
 
 module.exports = (robot) ->
 
-  # shuffle = (array) ->
-  #   counter = array.length
-  #   temp = undefined
-  #   index = undefined
-  #
-  #   while counter > 0
-  #
-  #     index = Math.floor(Math.random() * counter)
-  #
-  #     counter--
-  #
-  #     temp = array[counter]
-  #     array[counter] = array[index]
-  #     array[index] = temp
-  #
-  #   return array
-
-  stringifyGroups = ->
-    _.each groups, (reply, index) ->
-      reply += "\n"
-      reply += "#{index}"
-      reply += "hellO!"
+  stringifyGroups = (groups) ->
+    _.each groups, (el, index) ->
+      reply += "/n"
+      reply += "Group #{index}"
+      reply += "/n"
+      reply += el.join(" ")
+      reply +=
       reply
     , ""
 
@@ -50,7 +35,4 @@ module.exports = (robot) ->
         _.shuffle(student_arr)
         students_arr.pop()
       groups.push(group_arr)
-    num = 1
-    _.each groups, (el, index) ->
-      msg.send "Group #{index}"
-      msg.send el.join(" ")
+      msg.send stringifyGroups groups
