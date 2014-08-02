@@ -29,7 +29,7 @@ module.exports = (robot) ->
       reply
     , ""
 
-  robot.respond /groupr victim/, (msg) ->
+  robot.respond /groupr one/, (msg) ->
     student = _.sample(students_arr)
     msg.send student
 
@@ -39,7 +39,6 @@ module.exports = (robot) ->
     three = msg.match[3]
     msg_full = msg.match
     msg.send "#{one}, #{two}, #{three}, #{msg_full}"
-    msg.send "#{reply} #{msg}"
 
   robot.respond /groupr split (\d+)/, (msg) ->
     groups = []
@@ -52,4 +51,6 @@ module.exports = (robot) ->
         students_arr.pop()
       groups.push(group_arr)
     num = 1
-    # _.each groups
+    _.each groups, (el, index) ->
+      msg.send "Group #{index}"
+      msg.send el.join(" ")
