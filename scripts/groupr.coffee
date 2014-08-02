@@ -35,4 +35,5 @@ module.exports = (robot) ->
         _.shuffle(student_arr)
         students_arr.pop()
       groups.push(group_arr)
-      msg.send stringifyGroups groups
+      msgString = stringifyGroups groups
+      msg.send msgString
