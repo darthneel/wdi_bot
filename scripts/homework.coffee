@@ -43,4 +43,4 @@ module.exports = (robot) ->
     username = process.env.GITHUB_USER_NAME
     test = msg.message.user
     console.log test
-    msg.send test.id
+    msg.send test
