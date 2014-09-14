@@ -5,7 +5,7 @@
 #   Working on it
 
 _ = require 'underscore';
-#
+
 module.exports = (robot) ->
 #   closePullRequest = (pullRequest) ->
 #     console.log pullRequest
@@ -38,3 +38,7 @@ module.exports = (robot) ->
                   msg.send 'ERROR'
                 else
                   msg.send "Pull requests have been closed"
+
+  robot.respond /username/i, (msg) ->
+    username = process.env.GITHUB_USER_NAME
+    msg.send username
