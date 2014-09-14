@@ -3,5 +3,7 @@
 npm install
 export PATH="node_modules/.bin:node_modules/hubot/node_modules/.bin:$PATH"
 
-exec node_modules/.bin/hubot "$@"
+export HUBOT_GITHUB_TOKEN="622322018487e70fb98d9e2676d86118e8b1cd01"
+export HUBOT_LOG_LEVEL="debug"
 
+exec node_modules/.bin/hubot "$@"

@@ -2,46 +2,44 @@
 #   Ability to manage hw for the WDI Rosencrantz class
 #
 # Commands:
-#   Working on it still
+#   Working on it
 
-_ = require 'underscore';
-
-students_arr = ['Clayton Albachteh', 'Joe Biggica', 'Jeffrey Campomanes', 'Nastassia Carmona', 'Lee Crawford', 'Daniel Farber', 'Crawford Forbes', 'Conor Hastings', 'Shotaro Kamegai', 'Timoor Kurdi', 'Quardean Lewis-Allen', 'Adrian Lin', 'Yoshie Muranaka', 'Brenda Dargan-Levy', 'Andrea Ortega-Williams', 'Tejal Patel', 'Janine Rosen', 'Tess Shapiro', 'Iris Martinez', 'Lisa Wells', 'Heidi Williams-Foy', 'Eric Kramer', 'Jill Ortenberg', 'Patricia Laws', 'Alex Fong']
+# _   = require 'underscore';
 
 module.exports = (robot) ->
 
-  stringifyGroups = (groups) ->
-    _.each groups, (el, index) ->
-      reply += "/n"
-      reply += "Group #{index}"
-      reply += "/n"
-      reply += el.join(" ")
-      reply +=
-      reply
-    , ""
+  # github = require('githubot')(robot)
+  # token = github.withOptions(token: process.env.HUBOT_GITHUB_TOKEN)
+  #
+  robot.respond /pr/i, (msg) ->
+  #
+  #   user = msg.match[1]
+  #   console.log user
+  #
+  #   github.get "users/#{user}/repos", (repos) ->
+  #     console.log repos
+  #     msg.send "Fin!"
 
-  robot.respond /random one/, (msg) ->
-    student = _.sample(students_arr)
-    debugger
-    msg.send "Random student - #{student}"
+  # user = msg.match[1]
+  # msg.http("https://api.github.com/users/#{user}/repos")
+  #     .headers("User-Agent": "darthneel")
+  #     .get() (err, response, body) ->
+  #
+  #       console.log body
+  #       msg.send "Fin"
 
-  robot.respond /groupr test me (.*)/, (msg) ->
-    one = msg.match[1]
-    two = msg.match[2]
-    three = msg.match[3]
-    msg_full = msg.match
-    msg.send "#{one}, #{two}, #{three}, #{msg_full}"
+    user = msg.match[1]
 
-  robot.respond /groupr split (\d+)/, (msg) ->
-    groups = []
-    group_num = msg.match[1]
-    group_size = students_arr.length/group_num
-    for i in [0..group_num] by 1
-      num = group_size
-      group_arr = while num -= 1
-        _.shuffle(student_arr)
-        students_arr.pop()
-      groups.push(group_arr)
-    debugger
-    # console.log groups
-    msg.send "Hello"
+    # console.log process.env.HUBOT_GITHUB_TOKEN
+    msg.http("https://api.github.com/search/issues?access_token=#{process.env.HUBOT_GITHUB_TOKEN}&per_page=100&q=repo:ga-students/rosencrantz+type:pull+state:open")
+        .headers("User-Agent": "darthneel")
+        .get() (err, response, body) ->
+          parsedBody = JSON.parse body
+          console.log parsedBody.items[0].pull_request.url
+          queryString = JSON.stringify("commit_message": "merged")
+          msg.http(parsedBody.items[0].pull_request.url + "/merge?access_token=#{process.env.HUBOT_GITHUB_TOKEN}")
+            .headers("User-Agent": "darthneel")
+            .put(queryString) (err, response, body) ->
+              result = JSON.parse body
+              console.log result
+              msg.send "Fin"
