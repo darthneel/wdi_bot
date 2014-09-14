@@ -51,4 +51,4 @@ module.exports = (robot) ->
     user = msg.message.user
     keys = fGetKeys(user)
     console.log keys
-    msg.send keys
+    msg.send "name - #{user.name}, mention_name - #{user.mention_name}"
