@@ -8,12 +8,6 @@ _ = require 'underscore';
 
 module.exports = (robot) ->
 
-  fGetKeys = (obj) ->
-    keys = []
-    for key of obj
-      keys.push key
-    keys
-
 #   closePullRequest = (pullRequest) ->
 #     console.log pullRequest
 #     url = pullRequest.pull_request.url
@@ -55,9 +49,6 @@ module.exports = (robot) ->
     else
       msg.send "Sorry, you are not allowed to do that"
 
-  robot.respond /username/i, (msg) ->
-    username = process.env.GITHUB_USER_NAME
-    user = msg.message.user
-    keys = fGetKeys(user)
-    console.log keys
-    msg.send "name - #{user.name}, mention_name - #{user.mention_name}"
+
+  robot.respond /check hw/i, (msg) ->
+    msg.send "Checking!"
