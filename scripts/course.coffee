@@ -25,4 +25,12 @@ module.exports = (robot) ->
   robot.respond /get students/i, (msg) ->
     fs.readFile "./lib/students.json", (err, data) ->
       msg.send "/code " + data.toString()
-      
+
+  robot.respond /set instructors/i, (msg) ->
+    hash = {"Neel Patel": "darthneel", "Jeff Konowitch": "jkonowitch", "Sean West": "sean-west" }
+    json = JSON.stringify(hash)
+    fs.writeFile "./lib/instructors.json", json, (err) ->
+      if err
+        msg.send "ERROR - #{err}"
+      else
+        msg.send "Instructors have been set"
