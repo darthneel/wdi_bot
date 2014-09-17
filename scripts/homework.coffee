@@ -10,7 +10,7 @@ module.exports = (robot) ->
 
   getOpenPulls = (msg, cb) ->
     instructors = ["Jeff Konowitch", "Neel Patel","Sean West"]
-    if instructors.indexOf(msg.message.user.name) in instructors
+    if msg.message.user.name in instructors
       msg.http("https://api.github.com/search/issues?access_token=#{process.env.HUBOT_GITHUB_TOKEN}&per_page=100&q=repo:ga-students/rosencrantz+type:pull+state:open")
         .headers("User-Agent": "darthneel")
         .get() (err, response, body) ->
