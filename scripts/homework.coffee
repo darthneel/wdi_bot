@@ -47,7 +47,7 @@ module.exports = (robot) ->
       if allPullRequests.items.length is 0
         msg.send "No open pull requests at this time"
       else
-        _.each parsedBody.items, (pullRequest) ->
+        _.each allPullRequests.items, (pullRequest) ->
           closePullRequest(pullRequest, msg)
 
   robot.respond /open pulls/i, (msg) ->
