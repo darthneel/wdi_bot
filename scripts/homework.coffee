@@ -27,11 +27,11 @@ module.exports = (robot) ->
   getOpenPulls = (msg, cb) ->
     instructors = Object.keys instructorsHash()
     if msg.message.user.name in instructors
-    msg.http("https://api.github.com/search/issues?access_token=#{process.env.HUBOT_GITHUB_TOKEN}&per_page=100&q=repo:ga-students/rosencrantz+type:pull+state:open")
-      .headers("User-Agent": "darthneel")
-      .get() (err, response, body) ->
-        parsedBody = JSON.parse body
-        cb parsedBody
+      msg.http("https://api.github.com/search/issues?access_token=#{process.env.HUBOT_GITHUB_TOKEN}&per_page=100&q=repo:ga-students/rosencrantz+type:pull+state:open")
+        .headers("User-Agent": "darthneel")
+        .get() (err, response, body) ->
+          parsedBody = JSON.parse body
+          cb parsedBody
     else
       msg.send "Sorry, you are not allowed to do that"
 
