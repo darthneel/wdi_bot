@@ -22,15 +22,15 @@ module.exports = (robot) ->
     JSON.parse buffer.toString()
 
   getOpenPulls = (msg, cb) ->
-    instructors = ["Jeff Konowitch", "Neel Patel","Sean West"]
-    if msg.message.user.name in instructors
-      msg.http("https://api.github.com/search/issues?access_token=#{process.env.HUBOT_GITHUB_TOKEN}&per_page=100&q=repo:ga-students/rosencrantz+type:pull+state:open")
-        .headers("User-Agent": "darthneel")
-        .get() (err, response, body) ->
-          parsedBody = JSON.parse body
-          cb parsedBody
-    else
-      msg.send "Sorry, you are not allowed to do that"
+    instructors = Object.keys instructorsHash()
+    # if msg.message.user.name in instructors
+    msg.http("https://api.github.com/search/issues?access_token=#{process.env.HUBOT_GITHUB_TOKEN}&per_page=100&q=repo:ga-students/rosencrantz+type:pull+state:open")
+      .headers("User-Agent": "darthneel")
+      .get() (err, response, body) ->
+        parsedBody = JSON.parse body
+        cb parsedBody
+    # else
+    #   msg.send "Sorry, you are not allowed to do that"
 
   closePullRequest = (msg, pullRequest) ->
     url = pullRequest.pull_request.url
@@ -61,6 +61,5 @@ module.exports = (robot) ->
       students = studentsHash()
       githubAccounts = _.pluck students, 'github'
 
-      noPullRequest = _.difference submittedGithubAccounts, githubAccounts
-      console.log noPullRequest
+      noPullRequest = _.difference githubAccounts, submittedGithubAccounts
       msg.send "#{noPullRequest}"
