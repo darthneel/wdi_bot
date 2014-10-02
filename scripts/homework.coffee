@@ -26,14 +26,14 @@ module.exports = (robot) ->
 
   getOpenPulls = (msg, cb) ->
     instructors = Object.keys instructorsHash()
-    # if msg.message.user.name in instructors
+    if msg.message.user.name in instructors
     msg.http("https://api.github.com/search/issues?access_token=#{process.env.HUBOT_GITHUB_TOKEN}&per_page=100&q=repo:ga-students/rosencrantz+type:pull+state:open")
       .headers("User-Agent": "darthneel")
       .get() (err, response, body) ->
         parsedBody = JSON.parse body
         cb parsedBody
-    # else
-    #   msg.send "Sorry, you are not allowed to do that"
+    else
+      msg.send "Sorry, you are not allowed to do that"
 
   closePullRequest = (msg, pullRequest) ->
     url = pullRequest.pull_request.url
@@ -44,6 +44,17 @@ module.exports = (robot) ->
         throw err if err
         console.log pullRequest.user.login
         msg.send "Pull request for user #{pullRequest.user.login} has been closed"
+
+  checkIncompletes = (getOpenPulls, msg, cb) ->
+    getOpenPulls msg, (allPullRequests) ->
+      submittedGithubAccounts = _.pluck (_.pluck allPullRequests.items, 'user'), 'login'
+
+      students = studentsHash()
+      githubAccounts = _.pluck students, 'github'
+
+      noPullRequest = _.difference githubAccounts, submittedGithubAccounts
+
+      console.log(noPullRequest)
 
   robot.respond /close pr/i, (msg) ->
     getOpenPulls msg, (allPullRequests) ->
@@ -66,5 +77,4 @@ module.exports = (robot) ->
 
       noPullRequest = _.difference githubAccounts, submittedGithubAccounts
 
-
-      msg.send "Students with no open pull requests: \n#{noPullRequest.join('\n')}"
+      msg.send "Students with no open pull requests: \n #{noPullRequest.join('\n')}"
