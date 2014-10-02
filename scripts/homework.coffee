@@ -13,6 +13,9 @@ moment = require 'moment'
 module.exports = (robot) ->
   robot.brain.data.noPRSubmission ?= []
 
+  stringify = (arr) ->
+    _.reduce(arr, )
+
   instructorsHash = ->
     buffer = fs.readFileSync "./lib/instructors.json"
     JSON.parse buffer.toString()
@@ -62,4 +65,6 @@ module.exports = (robot) ->
       githubAccounts = _.pluck students, 'github'
 
       noPullRequest = _.difference githubAccounts, submittedGithubAccounts
-      msg.send "#{noPullRequest}"
+
+
+      msg.send "Students with no open pull requests: #{noPullRequest.join(", ")}"
