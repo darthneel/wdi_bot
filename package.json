@@ -27,7 +27,9 @@
     "hubot-hipchat": "~2.5.1-5",
     "hubot-thesimpsons": ">=1.0.1",
     "underscore": ">=0.0.1",
-    "moment": "^2.8.3"
+    "moment": "^2.8.3",
+    "request": "^2.44.0",
+    "cron": "^1.0.5"
   },
   "engines": {
     "node": ">= 0.8.x",

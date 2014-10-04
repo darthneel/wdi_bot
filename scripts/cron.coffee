@@ -1,17 +1,25 @@
+# Description:
+#   Utility commands surrounding Hubot uptime.
+#
+# Commands:
 
+
+CronJob = require("cron").CronJob
+request = require("request")
 
 module.exports = (robot) ->
 
-  # robot.respond /cron/i, (msg) ->
-  #   CronJob = require("cron").CronJob
-  #
-  #   job = new CronJob("00 30 11 * * 1-5", ->
-  #
-  #   # Runs every weekday (Monday through Friday)
-  #   # at 11:30:00 AM. It does not run on Saturday
-  #   # or Sunday.
-  #   , ->
-  #
-  #   # This function is executed when the job stops
-  #   # Start the job right now
-  #   , true, timeZone) # Time zone of this job.
+  robot.respond /cron ping/i, (msg) ->
+
+    job = new CronJob "* */15 * * * *", ->
+      msg.http("http://fathomless-garden-6223.herokuapp.com/hubot/ping")
+        .post() (err, res, body) ->
+          console.log(body)
+      # console.log "CRON"
+    , ->
+      console.log "Job has ended"
+    , true
+
+    # console.log job
+
+    msg.send "Cron has been started to hit /hubot/ping every 15 minutes"
