@@ -78,3 +78,6 @@ module.exports = (robot) ->
       noPullRequest = _.difference githubAccounts, submittedGithubAccounts
 
       msg.send "Students with no open pull requests: \n #{noPullRequest.join('\n')}"
+
+  robot.respond /check hw/i, (msg) ->
+    
