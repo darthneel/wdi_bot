@@ -31,11 +31,11 @@ module.exports = (robot) ->
       # msg.send "#{moment().day()} and #{moment().hour()} and #{moment().minute()}"
 
   robot.respond /animate( me)? (.*)/i, (msg) ->
-    # unless is_good_time()
-    #   msg.send "Sorry. Perhaps you should be paying attention to class?"
-    # else
-    imageMe msg, msg.match[2], true, (url) ->
-      msg.send url
+    unless is_good_time()
+      msg.send "Sorry. Perhaps you should be paying attention to class?"
+    else
+      imageMe msg, msg.match[2], true, (url) ->
+        msg.send url
 
   robot.respond /(?:mo?u)?sta(?:s|c)he?(?: me)? (.*)/i, (msg) ->
     unless is_good_time()
