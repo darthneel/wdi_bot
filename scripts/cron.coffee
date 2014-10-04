@@ -20,6 +20,6 @@ module.exports = (robot) ->
       console.log "Job has ended"
     , true
 
-    # console.log job
+    console.log "Cron has initiated!"
 
     msg.send "Cron has been started to hit /hubot/ping every 15 minutes"
