@@ -10,7 +10,7 @@ module.exports = (robot) ->
 
   robot.respond /cron ping/i, (msg) ->
 
-    job = new CronJob "00 */10 * * * *", ->
+    job = new CronJob "0 */10 * * * *", ->
       msg.http("http://fathomless-garden-6223.herokuapp.com/hubot/ping")
         .post() (err, res, body) ->
           console.log(body)
