@@ -10,17 +10,13 @@ _     = require 'underscore'
 module.exports = (robot) ->
 
   robot.respond /set students/i, (msg) ->
-    msg.http('http://app.ga-instructors.com/api/courses/6/students?email=neel.patel@generalassemb.ly&auth_token=f1855098c59f9379a028986962d3af81')
-      .get() (error, response, body) ->
-        if err
-          msg.send "ERROR - #{err}"
-        else
-          parsedresponse = JSON.parse body
-          fs.writeFile "./lib/students.json", body, (err) ->
-            if err
-              msg.send "ERROR - #{err}"
-            else
-              msg.send "Students have been set"
+    msg.http("http://app.ga-instructors.com/api/courses/#{process.env.COURSE_ID}/students?email=#{process.env.EMAIL}&auth_token=#{process.env.WDI_AUTH_TOKEN}")
+      .get() (err, response, body) ->
+        throw err if err
+        parsedresponse = JSON.parse body
+        fs.writeFile "./lib/students.json", body, (err) ->
+          throw err if err
+          msg.send "Students have been set"
 
   robot.respond /get students/i, (msg) ->
     fs.readFile "./lib/students.json", (err, data) ->
@@ -30,7 +26,5 @@ module.exports = (robot) ->
     hash = {"Neel Patel": "darthneel", "Jeff Konowitch": "jkonowitch", "Sean West": "sean-west" }
     json = JSON.stringify(hash)
     fs.writeFile "./lib/instructors.json", json, (err) ->
-      if err
-        msg.send "ERROR - #{err}"
-      else
-        msg.send "Instructors have been set"
+      throw err if err
+      msg.send "Instructors have been set"
