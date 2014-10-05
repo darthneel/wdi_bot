@@ -13,9 +13,6 @@ moment = require 'moment'
 module.exports = (robot) ->
   robot.brain.data.noPRSubmission ?= []
 
-  stringify = (arr) ->
-    _.reduce(arr, )
-
   instructorsHash = ->
     buffer = fs.readFileSync "./lib/instructors.json"
     JSON.parse buffer.toString()
