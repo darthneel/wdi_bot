@@ -95,9 +95,6 @@ module.exports = (robot) ->
 
       msg.send "Cron Job for #{job.name} has been started!"
 
-
-
-
 # ======= Class definitions =======
 
 class Job
