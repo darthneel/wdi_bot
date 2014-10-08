@@ -22,15 +22,15 @@ module.exports = (robot) ->
     JSON.parse buffer.toString()
 
   getOpenPulls = (msg, cb) ->
-    # instructors = Object.keys instructorsHash()
-    # if msg.message.user.name in instructors
+    instructors = Object.keys instructorsHash()
+    if msg.message.user.name in instructors
     msg.http("https://api.github.com/search/issues?access_token=#{process.env.HUBOT_GITHUB_TOKEN}&per_page=100&q=repo:#{process.env.COURSE_REPO}+type:pull+state:open")
       .headers("User-Agent": "darthneel")
       .get() (err, response, body) ->
         parsedBody = JSON.parse body
         cb parsedBody
-    # else
-    #   msg.send "Sorry, you are not allowed to do that"
+    else
+      msg.send "Sorry, you are not allowed to do that"
 
   closePullRequest = (msg, pullRequest) ->
     url = pullRequest.pull_request.url
@@ -98,13 +98,12 @@ module.exports = (robot) ->
         if studentMatch = _.find(allPullRequests["items"], (pr) -> pr["user"]["login"] is student["github"])
           payload["homework"]["completeness"] = (JSON.parse studentMatch["body"])["completeness"]
           payload["homework"]["comfortability"] = (JSON.parse studentMatch["body"])["comfortability"]
-          payload["status"] = "complete"
+          payload["homework"]["status"] = "complete"
           console.log payload
-        # else
-        #   payload["status"] = "incomplete"
+        else
+          payload["homework"]["status"] = "incomplete"
 
-          # msg.http("http://app.ga-instructors.com/api/courses/#{process.env.COURSE_ID}/homework?email=#{process.env.EMAIL}&auth_token=#{process.env.WDI_AUTH_TOKEN}")
-          msg.http("http://app.ga-instructors.com/api/courses/6/homework?email=neel.patel@generalassemb.ly&auth_token=f1855098c59f9379a028986962d3af81")
+          msg.http("http://app.ga-instructors.com/api/courses/#{process.env.COURSE_ID}/homework?email=#{process.env.EMAIL}&auth_token=#{process.env.WDI_AUTH_TOKEN}")
             .headers("Content-Type": "application/json")
             .put( JSON.stringify(payload) ) (err, response, body) ->
               throw err if err
