@@ -23,7 +23,8 @@ module.exports = (robot) ->
 
   getOpenPulls = (msg, cb) ->
     instructors = Object.keys instructorsHash()
-    if msg.message.user.name in instructors 
+    console.log msg.message.user.name
+    if msg.message.user.name in instructors
       msg.http("https://api.github.com/search/issues?access_token=#{process.env.HUBOT_GITHUB_TOKEN}&per_page=100&q=repo:#{process.env.COURSE_REPO}+type:pull+state:open")
         .headers("User-Agent": "darthneel")
         .get() (err, response, body) ->
@@ -79,9 +80,9 @@ module.exports = (robot) ->
   robot.respond /check hw/i, (msg) ->
     now = moment();
     if now.day() isnt 0
-      date = (now.subtract 1, 'day').format "YYYY-DD-MM"
+      date = (now.subtract 1, 'day').format "YYYY-MM-DD"
     else
-      date = (now.subtract 3, 'day').format "YYYY-DD-MM"
+      date = (now.subtract 3, 'day').format "YYYY-MM-DD"
 
     students = studentsHash()
 
