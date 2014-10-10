@@ -23,7 +23,7 @@ module.exports = (robot) ->
 
   getOpenPulls = (msg, cb) ->
     instructors = Object.keys instructorsHash()
-    if msg.message.user.name in instructors
+    if msg.message.user.name in instructors 
       msg.http("https://api.github.com/search/issues?access_token=#{process.env.HUBOT_GITHUB_TOKEN}&per_page=100&q=repo:#{process.env.COURSE_REPO}+type:pull+state:open")
         .headers("User-Agent": "darthneel")
         .get() (err, response, body) ->

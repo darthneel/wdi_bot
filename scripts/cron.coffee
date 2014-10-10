@@ -58,7 +58,7 @@ module.exports = (robot) ->
 
   robot.respond /cron test/i, (msg) ->
     console.log robot
-    pattern = "*/10 * * * * *"
+    pattern = "*/15 * * * * *"
 
     newJob = new Job pattern, testJob
     newJob.createCron {"string": "Hello World", "msg": msg}
