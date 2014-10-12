@@ -73,7 +73,7 @@ module.exports = (robot) ->
     newJob.startJob()
 
   robot.respond /l(ist)? active jobs/i, (msg) ->
-    console.log robot.brain.data.cronJobs
+    msg.send robot.brain.data.cronJobs
 
   robot.respond /d(elete)? all jobs/i, (msg) ->
     _.each robot.brain.data.cronJobs, (job) ->
