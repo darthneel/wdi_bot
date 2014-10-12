@@ -47,7 +47,7 @@ module.exports = (robot) ->
     msg.send "third"
 
 
-  # ===== Description of function and fucntion name that is available for Cron
+  # ===== Description of function and function name that is available for Cron
   robot.brain.data.potentialJobs = [
     {"name": "testJob", "function": testJob, "description": "Job to test if cron works"},
     {"name": "uptimePing", "function": uptimePing, "description": "Pings Hubot every 10 minutes to keep server up"},
@@ -55,6 +55,13 @@ module.exports = (robot) ->
   ]
 
   # ===== Response patterns =====
+
+  robot.respond /cron ping/i, (msg) ->
+    pattern = "0 0,10,20,30,40,50 * * * *"
+    newJob = new Job pattern uptimePing
+    newJob.createCron {"msg": msg}
+    newJob.save robot
+    newJob.startJob()
 
   robot.respond /cron test/i, (msg) ->
     console.log robot
@@ -75,9 +82,9 @@ module.exports = (robot) ->
     robot.brain.data.cronJobs = []
 
   robot.respond /l(ist)? all jobs/i, (msg) ->
-    msg.send "Use the following format to choose a job to Cron: `start job [JOB NUMBER] - [CRONTAB PATTERN]`"
-    msg.send "Read up on Crontab patterns: http://www.nncron.ru/help/EN/working/cron-format.htm or http://en.wikipedia.org/wiki/Cron or "
-    msg.send "Note: This application uses the standard Crontab pattern EXCEPT that it has an additional placeholder for seconds"
+    msg.send "\n Use the following format to choose a job to Cron: `start job [JOB NUMBER] - [CRONTAB PATTERN]`"
+    msg.send "\n Read up on Crontab patterns: http://www.nncron.ru/help/EN/working/cron-format.htm or http://en.wikipedia.org/wiki/Cron or "
+    msg.send "\n Note: This application uses the standard Crontab pattern EXCEPT that it has an additional placeholder for seconds"
     msg.send "\n"
     msg.send stringifyPotentialJobs()
 
@@ -94,6 +101,8 @@ module.exports = (robot) ->
       newJob.startJob()
 
       msg.send "Cron Job for #{job.name} has been started!"
+
+
 
 # ======= Class definitions =======
 

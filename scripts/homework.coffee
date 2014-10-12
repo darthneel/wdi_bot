@@ -96,7 +96,10 @@ module.exports = (robot) ->
           }
         }
 
-        if studentMatch = _.find(allPullRequests["items"], (pr) -> pr["user"]["login"] is student["github"])
+        studentMatch = _.find(allPullRequests["items"], (pr) ->
+          pr["user"]["login"] is student["github"])
+
+        if studentMatch
           payload["homework"]["completeness"] = (JSON.parse studentMatch["body"])["completeness"]
           payload["homework"]["comfortability"] = (JSON.parse studentMatch["body"])["comfortability"]
           payload["homework"]["status"] = "complete"
