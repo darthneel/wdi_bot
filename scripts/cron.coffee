@@ -58,7 +58,7 @@ module.exports = (robot) ->
 
   robot.respond /cron ping/i, (msg) ->
     pattern = "0 0,10,20,30,40,50 * * * *"
-    newJob = new Job pattern uptimePing
+    newJob = new Job pattern, uptimePing
     newJob.createCron {"msg": msg}
     newJob.save robot
     newJob.startJob()
