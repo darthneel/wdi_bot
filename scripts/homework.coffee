@@ -96,10 +96,6 @@ module.exports = (robot) ->
 
     students = studentsHash()
 
-    console.log date
-
-    counter = 0
-
     getOpenPulls msg, (allPullRequests) ->
       _.each students, (student) ->
 
@@ -130,5 +126,3 @@ module.exports = (robot) ->
             console.log response
             console.log body
             console.log "HW updated for #{student["fname"]} #{student["lname"]}"
-
-        console.log("#{counter} api calls made")
