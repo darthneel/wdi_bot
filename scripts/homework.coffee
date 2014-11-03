@@ -3,7 +3,7 @@
 #
 # Commands:
 #   hubot close pr - Close all open pull requests
-#   hubot open pulls - Returns count of open pull requests
+#   hubot pr count - Returns count of open pull requests
 
 _   = require 'underscore';
 fs  = require 'fs';
@@ -12,6 +12,8 @@ moment = require 'moment'
 
 module.exports = (robot) ->
   robot.brain.data.noPRSubmission ?= []
+
+  #==== Helper functions
 
   instructorsHash = ->
     buffer = fs.readFileSync "./lib/instructors.json"
@@ -54,6 +56,8 @@ module.exports = (robot) ->
 
       console.log(noPullRequest)
 
+  #==== Response patterns
+
   robot.respond /close pr/i, (msg) ->
     getOpenPulls msg, (allPullRequests) ->
       if allPullRequests.items.length is 0
@@ -62,7 +66,7 @@ module.exports = (robot) ->
         _.each allPullRequests.items, (pullRequest) ->
           closePullRequest(msg, pullRequest)
 
-  robot.respond /open pulls/i, (msg) ->
+  robot.respond /pr count/i, (msg) ->
     getOpenPulls msg, (allPullRequests) ->
       msg.send "There are currently #{allPullRequests.items.length} open pull requests"
 
@@ -77,14 +81,24 @@ module.exports = (robot) ->
 
       msg.send "Students with no open pull requests: \n #{noPullRequest.join('\n')}"
 
+  robot.respond /date test/i, (msg) ->
+    now = moment();
+    console.log now
+    console.log now.day()
+    console.log typeof now.day()
+
   robot.respond /check hw/i, (msg) ->
     now = moment();
-    if now.day() isnt 0
+    if now.day() isnt 1
       date = (now.subtract 1, 'day').format "YYYY-MM-DD"
     else
       date = (now.subtract 3, 'day').format "YYYY-MM-DD"
 
     students = studentsHash()
+
+    console.log date
+
+    counter = 0
 
     getOpenPulls msg, (allPullRequests) ->
       _.each students, (student) ->
@@ -106,11 +120,15 @@ module.exports = (robot) ->
           console.log payload
         else
           payload["homework"]["status"] = "incomplete"
+          console.log payload
 
-          msg.http("http://app.ga-instructors.com/api/courses/#{process.env.COURSE_ID}/homework?email=#{process.env.EMAIL}&auth_token=#{process.env.WDI_AUTH_TOKEN}")
-            .headers("Content-Type": "application/json")
-            .put( JSON.stringify(payload) ) (err, response, body) ->
-              throw err if err
-              console.log response
-              console.log body
-              console.log "HW updated for #{student["fname"]} #{student["lname"]}"
+        msg.http("http://app.ga-instructors.com/api/courses/#{process.env.COURSE_ID}/homework?email=#{process.env.EMAIL}&auth_token=#{process.env.WDI_AUTH_TOKEN}")
+          .headers("Content-Type": "application/json")
+          .put( JSON.stringify(payload) ) (err, response, body) ->
+            throw err if err
+            counter++
+            console.log response
+            console.log body
+            console.log "HW updated for #{student["fname"]} #{student["lname"]}"
+
+        console.log("#{counter} api calls made")

@@ -8,9 +8,11 @@
 
 _ = require 'underscore';
 
-students_arr = ['Clayton Albachten', 'Joe Biggica', 'Jeffrey Campomanes', 'Nastassia Carmona', 'Lee Crawford', 'Daniel Farber', 'Crawford Forbes', 'Conor Hastings', 'Shotaro Kamegai', 'Timoor Kurdi', 'Quardean Lewis-Allen', 'Adrian Lin', 'Yoshie Muranaka', 'Brenda Dargan-Levy', 'Andrea Ortega-Williams', 'Tejal Patel', 'Janine Rosen', 'Tess Shapiro', 'Iris Martinez', 'Lisa Wells', 'Heidi Williams-Foy', 'Eric Kramer', 'Jill Ortenberg', 'Patricia Laws', 'Alex Fong']
-
 module.exports = (robot) ->
+
+  studentsHash = ->
+    buffer = fs.readFileSync "./lib/students.json"
+    JSON.parse buffer.toString()
 
   stringifyGroups = (groups) ->
     _.each groups, (el, index) ->
@@ -33,15 +35,12 @@ module.exports = (robot) ->
     msg_full = msg.match
     msg.send "#{one}, #{two}, #{three}, #{msg_full}"
 
-  robot.respond /groupr split (\d+)/i, (msg) ->
-    groups = []
+  robot.respond /groupr (\d+)/i, (msg) ->
     group_num = msg.match[1]
-    group_size = students_arr.length/group_num
-    for i in [0..group_num] by 1
-      num = group_size
-      group_arr = while num -= 1
-        _.shuffle(student_arr)
-        students_arr.pop()
-      groups.push(group_arr)
-    # console.log groups
-    msg.send "Hello"
+
+    console.log group_num
+
+    students = _.map studentsHash(), (student) ->
+      return student
+
+    console.log students

@@ -9,6 +9,10 @@ _     = require 'underscore'
 
 module.exports = (robot) ->
 
+  studentsHash = ->
+    buffer = fs.readFileSync "./lib/students.json"
+    JSON.parse buffer.toString()
+
   robot.respond /set students/i, (msg) ->
     msg.http("http://app.ga-instructors.com/api/courses/#{process.env.COURSE_ID}/students?email=#{process.env.EMAIL}&auth_token=#{process.env.WDI_AUTH_TOKEN}")
       .get() (err, response, body) ->
@@ -28,3 +32,6 @@ module.exports = (robot) ->
     fs.writeFile "./lib/instructors.json", json, (err) ->
       throw err if err
       msg.send "Instructors have been set"
+
+  robot.respond /num of students/i, (msg) ->
+    msg.send "#{studentsHash().length}"
