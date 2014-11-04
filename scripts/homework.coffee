@@ -7,7 +7,7 @@
 
 _   = require 'underscore';
 fs  = require 'fs';
-moment = require 'moment'
+moment = require 'moment-timezone'
 
 
 module.exports = (robot) ->
@@ -83,7 +83,7 @@ module.exports = (robot) ->
 
   robot.respond /date test/i, (msg) ->
     now = moment();
-    msg.send "#{now.day()}"
+    msg.send "#{(moment.tz now.format(), "America/New_York").day()}"
 
   robot.respond /check hw/i, (msg) ->
     now = moment();
