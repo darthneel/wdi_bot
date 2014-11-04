@@ -83,7 +83,7 @@ module.exports = (robot) ->
 
   robot.respond /date test/i, (msg) ->
     now = moment();
-    msg.send now
+    msg.send "#{now.day()}"
 
   robot.respond /check hw/i, (msg) ->
     now = moment();
