@@ -7,6 +7,8 @@
 #   hubot groupr split
 
 _ = require 'underscore';
+fs  = require 'fs';
+
 
 module.exports = (robot) ->
 
@@ -36,11 +38,9 @@ module.exports = (robot) ->
     msg.send "#{one}, #{two}, #{three}, #{msg_full}"
 
   robot.respond /groupr (\d+)/i, (msg) ->
-    group_num = msg.match[1]
-
-    console.log group_num
+    groupNum = msg.match[1]
 
     students = _.map studentsHash(), (student) ->
-      return student
+      student["fname"] + " " + student["lname"]
 
     console.log students
