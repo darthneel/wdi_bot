@@ -83,9 +83,7 @@ module.exports = (robot) ->
 
   robot.respond /date test/i, (msg) ->
     now = moment();
-    console.log now
-    console.log now.day()
-    console.log typeof now.day()
+    msg.send now
 
   robot.respond /check hw/i, (msg) ->
     now = moment();
@@ -113,16 +111,11 @@ module.exports = (robot) ->
           payload["homework"]["completeness"] = (JSON.parse studentMatch["body"])["completeness"]
           payload["homework"]["comfortability"] = (JSON.parse studentMatch["body"])["comfortability"]
           payload["homework"]["status"] = "complete"
-          console.log payload
         else
           payload["homework"]["status"] = "incomplete"
-          console.log payload
 
         msg.http("http://app.ga-instructors.com/api/courses/#{process.env.COURSE_ID}/homework?email=#{process.env.EMAIL}&auth_token=#{process.env.WDI_AUTH_TOKEN}")
           .headers("Content-Type": "application/json")
           .put( JSON.stringify(payload) ) (err, response, body) ->
             throw err if err
-            counter++
-            console.log response
-            console.log body
-            console.log "HW updated for #{student["fname"]} #{student["lname"]}"
+            msg.send "HW updated for #{student["fname"]} #{student["lname"]}"
