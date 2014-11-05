@@ -9,9 +9,17 @@ _   = require 'underscore';
 fs  = require 'fs';
 moment = require 'moment-timezone'
 
+getDate = ->
+  now = moment();
+  "#{(moment.tz now.format(), "America/New_York").day()}"
+
 
 module.exports = (robot) ->
+  robot.brain.on 'loaded', () ->
+    console.log "DB HAS LOADED"
+
   robot.brain.data.noPRSubmission ?= []
+
 
   #==== Helper functions
 
@@ -81,13 +89,13 @@ module.exports = (robot) ->
 
       msg.send "Students with no open pull requests: \n #{noPullRequest.join('\n')}"
 
-  robot.respond /date test/i, (msg) ->
-    now = moment();
-    msg.send "#{(moment.tz now.format(), "America/New_York").day()}"
+  # robot.respond /date test/i, (msg) ->
+  #   now = moment();
+  #   msg.send "#{(moment.tz now.format(), "America/New_York").day()}"
 
   robot.respond /check hw/i, (msg) ->
-    now = moment();
-    if now.day() isnt 1
+    now = moment().format();
+    if (moment.tz now, "America/New_York").day() isnt 1
       date = (now.subtract 1, 'day').format "YYYY-MM-DD"
     else
       date = (now.subtract 3, 'day').format "YYYY-MM-DD"

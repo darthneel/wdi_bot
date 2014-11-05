@@ -6,7 +6,10 @@
 
 CronJob = require("cron").CronJob
 _       = require 'underscore';
+moment = require 'moment-timezone'
 
+
+console.log "hello"
 
 module.exports = (robot) ->
   # Creates array in db
@@ -47,6 +50,11 @@ module.exports = (robot) ->
     msg.send "third"
 
 
+  getDate = ->
+    now = moment();
+    console.log "#{(moment.tz now.format(), "America/New_York").day()}"
+
+
   # ===== Description of function and function name that is available for Cron
   robot.brain.data.potentialJobs = [
     {"name": "testJob", "function": testJob, "description": "Job to test if cron works"},
@@ -63,6 +71,7 @@ module.exports = (robot) ->
     newJob.save robot
     newJob.startJob()
 
+
   robot.respond /cron test/i, (msg) ->
     console.log robot
     pattern = "*/15 * * * * *"
@@ -70,6 +79,17 @@ module.exports = (robot) ->
     newJob = new Job pattern, testJob
     newJob.createCron {"string": "Hello World", "msg": msg}
     newJob.save robot
+    newJob.startJob()
+
+  robot.respond /cron date/i, (msg) ->
+    pattern = "*/10 * * * * *"
+
+    newJob = new Job pattern, getDate
+
+    console.log newJob
+
+    newJob.createCron()
+    # newJob.save robot
     newJob.startJob()
 
   robot.respond /l(ist)? active jobs/i, (msg) ->
@@ -122,8 +142,7 @@ class Job
 
   createCron: (optionsHash) ->
     console.log "in create"
-    func = @func
-    @cronJob = new CronJob @pattern, =>
+    this.cronJob = new CronJob @pattern, =>
       @func(optionsHash)
     , ->
       console.log "job ended"

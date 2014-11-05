@@ -43,4 +43,4 @@ module.exports = (robot) ->
     students = _.map studentsHash(), (student) ->
       student["fname"] + " " + student["lname"]
 
-    console.log students
+      

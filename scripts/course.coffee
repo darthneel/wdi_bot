@@ -35,3 +35,7 @@ module.exports = (robot) ->
 
   robot.respond /num of students/i, (msg) ->
     msg.send "#{studentsHash().length}"
+
+  robot.respond /date test/i, (msg) ->
+    date = getDate()
+    console.log date
