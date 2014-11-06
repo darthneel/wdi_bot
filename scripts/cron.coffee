@@ -5,15 +5,36 @@
 
 
 CronJob = require("cron").CronJob
-_       = require 'underscore';
+_       = require 'underscore'
 moment = require 'moment-timezone'
-
-
-console.log "hello"
+JSONfn = require 'json-fn'
 
 module.exports = (robot) ->
-  # Creates array in db
-  robot.brain.data.cronJobs ?= []
+  robot.brain.data.cronJobs ?= {}
+
+  robot.on "cron created", (cron) ->
+    console.log cron
+    job = new Job cron.pattern, cron.func, cron.timezone
+    job.createCron()
+    save job
+    job.startJob()
+
+  robot.brain.on 'loaded', () ->
+    console.log "DB HAS LOADED"
+    _.each robot.brain.data.cronJobs, (job) ->
+
+      console.log moment().format()
+
+      func = JSONfn.parse job[1]
+      console.log func
+      func()
+
+      newJob = new Job job[0], func, job[2]
+      newJob.createCron()
+      newJob.startJob()
+
+  save = (obj) ->
+    robot.brain.data.cronJobs[obj.id] = [obj.pattern, JSONfn.stringify obj.func, obj.timezone]
 
   #===== Functions being called in robot.respond callbacks ======
   allJobs = ->
@@ -50,11 +71,6 @@ module.exports = (robot) ->
     msg.send "third"
 
 
-  getDate = ->
-    now = moment();
-    console.log "#{(moment.tz now.format(), "America/New_York").day()}"
-
-
   # ===== Description of function and function name that is available for Cron
   robot.brain.data.potentialJobs = [
     {"name": "testJob", "function": testJob, "description": "Job to test if cron works"},
@@ -63,6 +79,11 @@ module.exports = (robot) ->
   ]
 
   # ===== Response patterns =====
+
+  robot.respond /testing again/i, (msg) ->
+    console.log module.children[1].exports()
+    # console.log Object.keys module
+    # console.log Object.keys module.exports.repl.context.moment()
 
   robot.respond /cron ping/i, (msg) ->
     pattern = "0 0,10,20,30,40,50 * * * *"
@@ -81,25 +102,15 @@ module.exports = (robot) ->
     newJob.save robot
     newJob.startJob()
 
-  robot.respond /cron date/i, (msg) ->
-    pattern = "*/10 * * * * *"
-
-    newJob = new Job pattern, getDate
-
-    console.log newJob
-
-    newJob.createCron()
-    # newJob.save robot
-    newJob.startJob()
-
   robot.respond /l(ist)? active jobs/i, (msg) ->
-    msg.send robot.brain.data.cronJobs
+    # console.log JSON.parse robot.brain.data.cronJobs
+    console.log robot.brain.data.cronJobs
 
   robot.respond /d(elete)? all jobs/i, (msg) ->
     _.each robot.brain.data.cronJobs, (job) ->
       job.stopJob()
 
-    robot.brain.data.cronJobs = []
+    robot.brain.data.cronJobs.splice(0, robot.brain.data.cronJobs.length)
 
   robot.respond /l(ist)? all jobs/i, (msg) ->
     msg.send "\n Use the following format to choose a job to Cron: `start job [JOB NUMBER] - [CRONTAB PATTERN]`"
@@ -122,13 +133,25 @@ module.exports = (robot) ->
 
       msg.send "Cron Job for #{job.name} has been started!"
 
+  robot.respond /clear brain/i, (msg) ->
+    console.log robot.brain.data.cronJobs
+
+    robot.brain.data.cronJobs = {}
+
+    # robot.brain.data.cronJobs.splice(0, robot.brain.data.cronJobs.length)
+
+    console.log robot.brain.data.cronJobs
 
 
 # ======= Class definitions =======
 
 class Job
-  constructor: (@pattern, @func) ->
-    @id = Math.floor(Math.random() * 10000) + Date.now()
+  constructor: (@pattern, @func, @timezone) ->
+    @id = this.generateID()
+
+  generateID: () ->
+    now = Date.now().toString()
+    now.substring(now.length - 7, now.length)
 
   save: (robot) ->
     console.log "in save"
@@ -142,9 +165,10 @@ class Job
 
   createCron: (optionsHash) ->
     console.log "in create"
-    this.cronJob = new CronJob @pattern, =>
+    @cronJob = new CronJob @pattern, =>
       @func(optionsHash)
     , ->
       console.log "job ended"
     , false
+    , @timezone
     console.log "finished creating"

@@ -15,8 +15,8 @@ getDate = ->
 
 
 module.exports = (robot) ->
-  robot.brain.on 'loaded', () ->
-    console.log "DB HAS LOADED"
+  # robot.brain.on 'loaded', () ->
+  #   console.log "DB HAS LOADED"
 
   robot.brain.data.noPRSubmission ?= []
 
