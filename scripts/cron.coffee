@@ -6,84 +6,60 @@
 
 CronJob = require("cron").CronJob
 _       = require 'underscore'
-moment = require 'moment-timezone'
 JSONfn = require 'json-fn'
+
+JOBS = {}
 
 module.exports = (robot) ->
   robot.brain.data.cronJobs ?= {}
 
   robot.on "cron created", (cron) ->
     console.log cron
-    job = new Job cron.pattern, cron.func, cron.timezone
+    job = new Job cron.pattern, cron.func, cron.timezone, cron.description
     job.createCron()
-    save job
     job.startJob()
+    save job
+    JOBS[job.id] = job
 
   robot.brain.on 'loaded', () ->
     console.log "DB HAS LOADED"
-    _.each robot.brain.data.cronJobs, (job) ->
+    _.each robot.brain.data.cronJobs, (job, id) ->
 
-      console.log moment().format()
+      func = JSONfn.parse job["func"]
 
-      func = JSONfn.parse job[1]
-      console.log func
-      func()
-
-      newJob = new Job job[0], func, job[2]
-      newJob.createCron()
-      newJob.startJob()
+      job = new Job job["pattern"], func, job["timezone"], job["description"], job["running"]
+      job.id = id
+      job.createCron()
+      if job.running is true
+        job.startJob()
+      JOBS[job.id.toString()] = job
 
   save = (obj) ->
-    robot.brain.data.cronJobs[obj.id] = [obj.pattern, JSONfn.stringify obj.func, obj.timezone]
+    func = JSONfn.stringify obj.func
+    robot.brain.data.cronJobs[obj.id] = {pattern: obj.pattern, func: func, timezone: obj.timezone, description: obj.description, running: obj.running}
 
   #===== Functions being called in robot.respond callbacks ======
   allJobs = ->
     console.log robot.brain.data.cronJobs
 
-  stringifyPotentialJobs = ->
-    list = robot.brain.data.potentialJobs
-    _.reduce list, (reply, job) ->
-      # console.log reply
-      # console.log job
+  stringifyJobs = ->
+    list = robot.brain.data.cronJobs
+    _.reduce list, (reply, job, id) ->
       reply += "\n"
-      # reply += "#{job.name} - #{job.description}"
-      reply += "#{( list.indexOf job ) + 1}: #{job.name} - #{job.description}"
+      reply += "Job Number: #{id} - #{job.description}. Currently Running: #{job.running}"
       reply
     , ""
 
 
   #===== Functions available for Cron ========
-
-  testJob = (optionsHash) ->
-    string = "Hello World"
-    msg = optionsHash["msg"]
-
-    msg.send string
-
+  
   uptimePing = (optionsHash) ->
     msg = optionsHash["msg"]
     msg.http("#{process.env.HEROKU_URL}/hubot/ping")
       .post() (err, res, body) ->
         console.log(body)
 
-  third = ->
-    console.log "third"
-    msg.send "third"
-
-
-  # ===== Description of function and function name that is available for Cron
-  robot.brain.data.potentialJobs = [
-    {"name": "testJob", "function": testJob, "description": "Job to test if cron works"},
-    {"name": "uptimePing", "function": uptimePing, "description": "Pings Hubot every 10 minutes to keep server up"},
-    {"name": "third", "function": third, "description": "Third"}
-  ]
-
   # ===== Response patterns =====
-
-  robot.respond /testing again/i, (msg) ->
-    console.log module.children[1].exports()
-    # console.log Object.keys module
-    # console.log Object.keys module.exports.repl.context.moment()
 
   robot.respond /cron ping/i, (msg) ->
     pattern = "0 0,10,20,30,40,50 * * * *"
@@ -92,76 +68,73 @@ module.exports = (robot) ->
     newJob.save robot
     newJob.startJob()
 
-
-  robot.respond /cron test/i, (msg) ->
-    console.log robot
-    pattern = "*/15 * * * * *"
-
-    newJob = new Job pattern, testJob
-    newJob.createCron {"string": "Hello World", "msg": msg}
-    newJob.save robot
-    newJob.startJob()
-
   robot.respond /l(ist)? active jobs/i, (msg) ->
-    # console.log JSON.parse robot.brain.data.cronJobs
     console.log robot.brain.data.cronJobs
 
-  robot.respond /d(elete)? all jobs/i, (msg) ->
-    _.each robot.brain.data.cronJobs, (job) ->
+  robot.respond /k(ill)? job (\d{7})/i, (msg) ->
+    jobNumber =  msg.match[2]
+    console.log typeof jobNumber
+    console.log msg.match
+    job = JOBS[jobNumber]
+    console.log job
+    if job? and job.running is true
       job.stopJob()
-
-    robot.brain.data.cronJobs.splice(0, robot.brain.data.cronJobs.length)
-
-  robot.respond /l(ist)? all jobs/i, (msg) ->
-    msg.send "\n Use the following format to choose a job to Cron: `start job [JOB NUMBER] - [CRONTAB PATTERN]`"
-    msg.send "\n Read up on Crontab patterns: http://www.nncron.ru/help/EN/working/cron-format.htm or http://en.wikipedia.org/wiki/Cron or "
-    msg.send "\n Note: This application uses the standard Crontab pattern EXCEPT that it has an additional placeholder for seconds"
-    msg.send "\n"
-    msg.send stringifyPotentialJobs()
-
-  robot.respond /start job (\d{1}) - ((\*?(\/?\d+)? ?){6})/i, (msg) ->
-    jobNumber = msg.match[1]
-    pattern = msg.match[2]
-    if pattern.split(" ").length isnt 6
-      msg.send "Crontab pattern is not valid, please try again"
+      robot.brain.data.cronJobs[jobNumber]["running"] = false
+      job.running = false
+      msg.send "Job #{job.id} has been stopped"
     else
-      job = robot.brain.data.potentialJobs[msg.match[1] - 1]
-      newJob = new Job pattern, job.function
-      newJob.createCron {"msg": msg}
-      newJob.save robot
-      newJob.startJob()
+      msg.send "Error: The job number you entered is either not running or does not exist"
 
-      msg.send "Cron Job for #{job.name} has been started!"
+  robot.respond /l(ist)? jobs/i, (msg) ->
+    msg.send stringifyJobs()
+
+  robot.respond /s(tart)? job (\d{7})/i, (msg) ->
+    jobNumber =  msg.match[2]
+    job = JOBS[jobNumber]
+    if job? and job.running is false
+      job.startJob()
+      robot.brain.data.cronJobs[jobNumber]["running"] = true
+      job.running = true
+      msg.send "Job #{job.id} has been started"
+    else
+      msg.send "Error: The job number you entered is either already running or does not exist"
+      msg.send "Use the command 'l all jobs' to check the job number"
+
+  # robot.respond /start job (\d{1}) - ((\*?(\/?\d+)? ?){6})/i, (msg) ->
+  #   jobNumber = msg.match[1]
+  #   pattern = msg.match[2]
+  #   if pattern.split(" ").length isnt 6
+  #     msg.send "Crontab pattern is not valid, please try again"
+  #   else
+  #     job = robot.brain.data.potentialJobs[msg.match[1] - 1]
+  #     newJob = new Job pattern, job.function
+  #     newJob.createCron {"msg": msg}
+  #     newJob.save robot
+  #     newJob.startJob()
+  #
+  #     msg.send "Cron Job for #{job.name} has been started!"
 
   robot.respond /clear brain/i, (msg) ->
-    console.log robot.brain.data.cronJobs
-
     robot.brain.data.cronJobs = {}
-
-    # robot.brain.data.cronJobs.splice(0, robot.brain.data.cronJobs.length)
-
-    console.log robot.brain.data.cronJobs
-
 
 # ======= Class definitions =======
 
 class Job
-  constructor: (@pattern, @func, @timezone) ->
+  constructor: (@pattern, @func, @timezone, @description, running) ->
     @id = this.generateID()
+    @running = running or false
 
   generateID: () ->
     now = Date.now().toString()
     now.substring(now.length - 7, now.length)
 
-  save: (robot) ->
-    console.log "in save"
-    robot.brain.data.cronJobs.push this
-
   startJob: () ->
     @cronJob.start()
+    @running = true
 
   stopJob: () ->
     @cronJob.stop()
+    @running = false
 
   createCron: (optionsHash) ->
     console.log "in create"

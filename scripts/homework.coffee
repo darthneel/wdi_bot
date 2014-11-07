@@ -5,9 +5,9 @@
 #   hubot close pr - Close all open pull requests
 #   hubot pr count - Returns count of open pull requests
 
-_   = require 'underscore';
-fs  = require 'fs';
-moment = require 'moment-timezone'
+global._   = require 'underscore';
+global.fs  = require 'fs';
+global.moment = require 'moment-timezone'
 
 getDate = ->
   now = moment();

@@ -1,28 +1,14 @@
-CronJob = require("cron").CronJob
 _       = require 'underscore'
-moment = require 'moment-timezone'
+global.moment = require 'moment-timezone'
 util = require 'util'
-JSONfn = require 'json-fn'
-
-
 module.exports = (robot) ->
 
   # save = (obj) ->
   #   robot.brain.data.cronJobs.push obj
 
-  getDate = (params) ->
-    # console.log this
-    moment2 = params || moment
-    # if moment?
-    #   console.log "exists"
-    #   now = moment()
-    # else
-    #   console.log module.children[1].exports
-    #   console.log module.children[1].exports()
-    #   moment = module.children[1].exports
-    #   now = moment()
-    now = moment2()
-    console.log "#{(moment2.tz now.format(), "America/New_York").day()}"
+  getDate = () ->
+    now = moment()
+    console.log "#{(moment.tz now.format(), "America/New_York").day()}"
 
   testFunc = ->
     console.log this
@@ -37,6 +23,7 @@ module.exports = (robot) ->
       pattern: pattern,
       func: func
       timezone: timezone
+      description: "Gets the bloody date"
       }
 
   robot.respond /cron testfunc/i, (msg) ->
@@ -49,6 +36,9 @@ module.exports = (robot) ->
       func: func
       timezone: timezone
       }
+
+  robot.respond /get date/i, (msg) ->
+    getDate()
 
 
     # newJob = new Job pattern, getDate
