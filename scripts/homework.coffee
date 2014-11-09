@@ -66,7 +66,7 @@ module.exports = (robot) ->
 
   #==== Response patterns
 
-  robot.router.post "/hubot/students", (req, res) ->
+  robot.router.get "/hubot/students", (req, res) ->
     students = studentsHash()
     res.end "#{students}"
 
