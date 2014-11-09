@@ -61,7 +61,7 @@ module.exports = (robot) ->
 
   # ===== Response patterns =====
 
-  robot.respond/cron rooomer/i, (msg) ->
+  robot.respond /cron rooomer/i, (msg) ->
     pattern = "*/10 * * * * *"
     func = (msg) ->
       msg.http("#{process.env.HEROKU_URL}/hubot/roomtest")
