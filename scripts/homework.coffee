@@ -89,7 +89,7 @@ module.exports = (robot) ->
             throw err if err
             msg.send "HW updated for #{student["fname"]} #{student["lname"]}"
 
-  #==== Response patterns
+  #===== HTTP response patterns
 
   robot.router.get "/hubot/students", (req, res) ->
     students = studentsHash()
@@ -97,7 +97,15 @@ module.exports = (robot) ->
 
   robot.router. get "/hubot/roomtest", (req, res) ->
     room = process.env.HUBOT_HIPCHAT_ROOMS
-    robot.messageRoom(room, 'Hello room!')
+    now = moment()
+    weekdays = [1..5]
+    if (moment.tz now.format(), "America/New_York").day() is in weekdays
+      robot.messageRoom room, "Reminder: Please submit yesterday's work before 9:30am"
+      res.end "Response sent to room"
+    else
+      res.end "Wrong day!"
+
+  #==== Hipchat Response patterns
 
   robot.respond /close all pr/i, (msg) ->
     getOpenPulls msg, (allPullRequests) ->
