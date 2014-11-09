@@ -31,7 +31,8 @@
     "request": "^2.44.0",
     "cron": "^1.0.5",
     "moment-timezone": "^0.2.4",
-    "json-fn": "^0.60.0"
+    "json-fn": "^0.60.0",
+    "hubot-heroku-keepalive": "0.0.4"
   },
   "engines": {
     "node": ">= 0.8.x",

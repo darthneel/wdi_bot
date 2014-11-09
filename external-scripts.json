@@ -1,1 +1,4 @@
-["hubot-thesimpsons"]
+[
+  "hubot-thesimpsons",
+  "hubot-heroku-keepalive"
+]
