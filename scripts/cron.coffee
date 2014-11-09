@@ -58,7 +58,7 @@ module.exports = (robot) ->
     msg.http("#{process.env.HEROKU_URL}/hubot/ping")
       .post() (err, res, body) ->
         console.log(body)
-
+# http://fathomless-garden-6223.herokuapp.com/hubot/ping
   # ===== Response patterns =====
 
   robot.respond /cron ping/i, (msg) ->
