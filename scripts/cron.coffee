@@ -6,7 +6,7 @@
 
 CronJob = require("cron").CronJob
 _       = require 'underscore'
-JSONfn = require 'json-fn'
+request = require 'request'
 
 JOBS = {}
 
@@ -15,7 +15,7 @@ module.exports = (robot) ->
 
   robot.on "cron created", (cron) ->
     console.log cron
-    job = new Job cron.pattern, cron.func, cron.timezone, cron.description, cron.msg
+    job = new Job cron.pattern, cron.url, cron.timezone, cron.description
     job.createCron()
     job.startJob()
     save job
@@ -23,20 +23,17 @@ module.exports = (robot) ->
 
   robot.brain.on 'loaded', () ->
     console.log "DB HAS LOADED"
-    # _.each robot.brain.data.cronJobs, (job, id) ->
-    #
-    #   func = JSONfn.parse job["func"]
-    #
-    #   job = new Job job["pattern"], func, job["timezone"], job["description"], job["running"]
-    #   job.id = id
-    #   job.createCron()
-    #   if job.running is true
-    #     job.startJob()
-    #   JOBS[job.id.toString()] = job
+    _.each robot.brain.data.cronJobs, (job, id) ->
+
+      job = new Job job["pattern"], job["url"], job["timezone"], job["description"], job["running"]
+      job.id = id
+      job.createCron()
+      if job.running is true
+        job.startJob()
+      JOBS[job.id.toString()] = job
 
   save = (obj) ->
-    func = JSONfn.stringify obj.func
-    robot.brain.data.cronJobs[obj.id] = {pattern: obj.pattern, func: func, timezone: obj.timezone, description: obj.description, running: obj.running}
+    robot.brain.data.cronJobs[obj.id] = {pattern: obj.pattern, url: obj.url, timezone: obj.timezone, description: obj.description, running: obj.running}
 
   #===== Functions being called in robot.respond callbacks ======
   allJobs = ->
@@ -51,55 +48,27 @@ module.exports = (robot) ->
     , ""
 
 
-  #===== Functions available for Cron ========
-
-  uptimePing = (optionsHash) ->
-    msg = optionsHash["msg"]
-    msg.http("#{process.env.HEROKU_URL}/hubot/ping")
-      .post() (err, res, body) ->
-        console.log(body)
-
   # ===== Response patterns =====
 
   robot.respond /cron roomer/i, (msg) ->
     pattern = "*/10 * * * * *"
-    func = (msg) ->
-      console.log msg
-      msg.http("#{process.env.HEROKU_URL}/hubot/roomtest")
-        .get() (err, response, body) ->
+    url = "#{process.env.HEROKU_URL}/hubot/roomtest"
     timezone = "America/New_York"
     description = "Crons room message"
 
-    job = new Job pattern, func, timezone, description, msg
-    job.createCron(msg)
-    console.log job
-    job.startJob()
-
     robot.emit "cron created", {
       pattern: pattern,
-      func: func,
+      url: url,
       timezone: timezone,
       description: "Messages room",
-      msg: msg
       }
-
-
-  robot.respond /cron ping/i, (msg) ->
-    pattern = "0 0,10,20,30,40,50 * * * *"
-    newJob = new Job pattern, uptimePing
-    newJob.createCron {"msg": msg}
-    newJob.save robot
-    newJob.startJob()
 
   robot.respond /l(ist)? active jobs/i, (msg) ->
     console.log robot.brain.data.cronJobs
 
   robot.respond /k(ill)? job (\d{7})/i, (msg) ->
     jobNumber =  msg.match[2]
-    console.log typeof jobNumber
-    console.log msg.match
     job = JOBS[jobNumber]
-    console.log job
     if job? and job.running is true
       job.stopJob()
       robot.brain.data.cronJobs[jobNumber]["running"] = false
@@ -129,7 +98,7 @@ module.exports = (robot) ->
 # ======= Class definitions =======
 
 class Job
-  constructor: (@pattern, @func, @timezone, @description, @msg, running) ->
+  constructor: (@pattern, @url, @timezone, @description, running) ->
     @id = this.generateID()
     @running = running or false
 
@@ -145,10 +114,11 @@ class Job
     @cronJob.stop()
     @running = false
 
-  createCron: (message) ->
+  createCron: () ->
     console.log "in create"
     @cronJob = new CronJob @pattern, =>
-      @func(message)
+      request @url, (err, res, body) ->
+        console.log res
     , ->
       console.log "job ended"
     , false
