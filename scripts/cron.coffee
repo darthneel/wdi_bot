@@ -13,26 +13,26 @@ JOBS = {}
 module.exports = (robot) ->
   robot.brain.data.cronJobs ?= {}
 
-  robot.on "cron created", (cron) ->
-    console.log cron
-    job = new Job cron.pattern, cron.func, cron.timezone, cron.description, cron.msg
-    job.createCron()
-    job.startJob()
-    save job
-    JOBS[job.id] = job
-
-  robot.brain.on 'loaded', () ->
-    console.log "DB HAS LOADED"
-    _.each robot.brain.data.cronJobs, (job, id) ->
-
-      func = JSONfn.parse job["func"]
-
-      job = new Job job["pattern"], func, job["timezone"], job["description"], job["running"]
-      job.id = id
-      job.createCron()
-      if job.running is true
-        job.startJob()
-      JOBS[job.id.toString()] = job
+  # robot.on "cron created", (cron) ->
+  #   console.log cron
+  #   job = new Job cron.pattern, cron.func, cron.timezone, cron.description, cron.msg
+  #   job.createCron()
+  #   job.startJob()
+  #   save job
+  #   JOBS[job.id] = job
+  #
+  # robot.brain.on 'loaded', () ->
+  #   console.log "DB HAS LOADED"
+  #   _.each robot.brain.data.cronJobs, (job, id) ->
+  #
+  #     func = JSONfn.parse job["func"]
+  #
+  #     job = new Job job["pattern"], func, job["timezone"], job["description"], job["running"]
+  #     job.id = id
+  #     job.createCron()
+  #     if job.running is true
+  #       job.startJob()
+  #     JOBS[job.id.toString()] = job
 
   save = (obj) ->
     func = JSONfn.stringify obj.func
@@ -61,19 +61,25 @@ module.exports = (robot) ->
 
   # ===== Response patterns =====
 
-  robot.respond /cron rooomer/i, (msg) ->
+  robot.respond /cron roomer/i, (msg) ->
     pattern = "*/10 * * * * *"
     func = (msg) ->
       msg.http("#{process.env.HEROKU_URL}/hubot/roomtest")
     timezone = "America/New_York"
+    description = "Crons room message"
 
-    robot.emit "cron created", {
-      pattern: pattern,
-      func: func
-      timezone: timezone
-      description: "Messages room"
-      msg: msg
-      }
+    job = new Job pattern, func, timezone, description, msg
+    job.createCron()
+    console.log job
+    job.startJob()
+
+    # robot.emit "cron created", {
+    #   pattern: pattern,
+    #   func: func,
+    #   timezone: timezone,
+    #   description: "Messages room",
+    #   msg: msg
+    #   }
 
 
   robot.respond /cron ping/i, (msg) ->
