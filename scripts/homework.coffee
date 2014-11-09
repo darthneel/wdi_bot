@@ -99,7 +99,7 @@ module.exports = (robot) ->
     room = process.env.HUBOT_HIPCHAT_ROOMS
     now = moment()
     weekdays = [1..5]
-    if (moment.tz now.format(), "America/New_York").day() is in weekdays
+    if (moment.tz now.format(), "America/New_York").day() in weekdays
       robot.messageRoom room, "Reminder: Please submit yesterday's work before 9:30am"
       res.end "Response sent to room"
     else
