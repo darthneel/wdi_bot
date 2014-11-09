@@ -5,21 +5,11 @@
 #   hubot close pr - Close all open pull requests
 #   hubot pr count - Returns count of open pull requests
 
-global._   = require 'underscore';
-global.fs  = require 'fs';
-global.moment = require 'moment-timezone'
-
-getDate = ->
-  now = moment();
-  "#{(moment.tz now.format(), "America/New_York").day()}"
-
+_   = require 'underscore'
+fs  = require 'fs'
+moment = require 'moment-timezone'
 
 module.exports = (robot) ->
-  # robot.brain.on 'loaded', () ->
-  #   console.log "DB HAS LOADED"
-
-  robot.brain.data.noPRSubmission ?= []
-
 
   #==== Helper functions
 
@@ -53,36 +43,7 @@ module.exports = (robot) ->
         console.log pullRequest.user.login
         msg.send "Pull request for user #{pullRequest.user.login} has been closed"
 
-  checkIncompletes = (getOpenPulls, msg, cb) ->
-    getOpenPulls msg, (allPullRequests) ->
-      submittedGithubAccounts = _.pluck (_.pluck allPullRequests.items, 'user'), 'login'
-
-      students = studentsHash()
-      githubAccounts = _.pluck students, 'github'
-
-      noPullRequest = _.difference githubAccounts, submittedGithubAccounts
-
-      console.log(noPullRequest)
-
-  #==== Response patterns
-
-  robot.router.get "/hubot/students", (req, res) ->
-    students = studentsHash()
-    res.end "#{students}"
-
-  robot.respond /close pr/i, (msg) ->
-    getOpenPulls msg, (allPullRequests) ->
-      if allPullRequests.items.length is 0
-        msg.send "No open pull requests at this time"
-      else
-        _.each allPullRequests.items, (pullRequest) ->
-          closePullRequest(msg, pullRequest)
-
-  robot.respond /pr count/i, (msg) ->
-    getOpenPulls msg, (allPullRequests) ->
-      msg.send "There are currently #{allPullRequests.items.length} open pull requests"
-
-  robot.respond /incompletes/i, (msg) ->
+  checkIncompletes = (msg) ->
     getOpenPulls msg, (allPullRequests) ->
       submittedGithubAccounts = _.pluck (_.pluck allPullRequests.items, 'user'), 'login'
 
@@ -93,13 +54,9 @@ module.exports = (robot) ->
 
       msg.send "Students with no open pull requests: \n #{noPullRequest.join('\n')}"
 
-  # robot.respond /date test/i, (msg) ->
-  #   now = moment();
-  #   msg.send "#{(moment.tz now.format(), "America/New_York").day()}"
-
-  robot.respond /check hw/i, (msg) ->
-    now = moment().format();
-    if (moment.tz now, "America/New_York").day() isnt 1
+  checkHW = (msg) ->
+    now = moment()
+    if (moment.tz now.format(), "America/New_York").day() isnt 1
       date = (now.subtract 1, 'day').format "YYYY-MM-DD"
     else
       date = (now.subtract 3, 'day').format "YYYY-MM-DD"
@@ -131,3 +88,35 @@ module.exports = (robot) ->
           .put( JSON.stringify(payload) ) (err, response, body) ->
             throw err if err
             msg.send "HW updated for #{student["fname"]} #{student["lname"]}"
+
+  #==== Response patterns
+
+  robot.router.get "/hubot/students", (req, res) ->
+    students = studentsHash()
+    res.end "#{students}"
+
+  robot.router. get "/hubot/roomtest", (req, res) ->
+    room = process.END.HUBOT_HIPCHAT_ROOMS
+    robot.messageRoom(room, 'Hello room!')
+
+  robot.respond /close all pr/i, (msg) ->
+    getOpenPulls msg, (allPullRequests) ->
+      if allPullRequests.items.length is 0
+        msg.send "No open pull requests at this time"
+      else
+        _.each allPullRequests.items, (pullRequest) ->
+          closePullRequest(msg, pullRequest)
+
+  robot.respond /pr count/i, (msg) ->
+    getOpenPulls msg, (allPullRequests) ->
+      msg.send "There are currently #{allPullRequests.items.length} open pull requests"
+
+  robot.respond /incompletes/i, (msg) ->
+    checkIncompletes(msg)
+
+
+  robot.respond /inc test/i, (msg) ->
+    checkIncompletes(msg)
+
+  robot.respond /check hw/i, (msg) ->
+    checkHW(msg)
