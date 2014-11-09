@@ -9,7 +9,27 @@ _   = require 'underscore'
 fs  = require 'fs'
 moment = require 'moment-timezone'
 
+#===== Cron functions
+
+messageRoom = (robot) ->
+  pattern = "*/10 * * * * *"
+  # pattern = "00 30 9 * * 1-5"
+  url = "#{process.env.HEROKU_URL}/hubot/roomtest"
+  timezone = "America/New_York"
+  description = "Crons room message"
+
+  robot.emit "cron created", {
+    pattern: pattern,
+    url: url,
+    timezone: timezone,
+    description: "Messages room",
+    }
+
 module.exports = (robot) ->
+
+  #==== Initiate all Cron jobs once database has connected
+  robot.brain.on 'loaded', () ->
+    messageRoom(robot)
 
   #==== Helper functions
 
@@ -89,7 +109,7 @@ module.exports = (robot) ->
             throw err if err
             msg.send "HW updated for #{student["fname"]} #{student["lname"]}"
 
-  #===== HTTP response patterns
+  #===== HTTP Routes
 
   robot.router.get "/hubot/students", (req, res) ->
     students = studentsHash()
@@ -105,8 +125,13 @@ module.exports = (robot) ->
     else
       res.end "Wrong day!"
 
-  #==== Hipchat Response patterns
+  robot.router.get "/hubot/anothertest", (req, res) ->
+    room = process.env.HUBOT_HIPCHAT_ROOMS
+    robot.messageRoom room, "Testing, testing, 1..2..3.."
+    res.end "sent some things"
 
+  #==== Hipchat Response patterns
+  
   robot.respond /close all pr/i, (msg) ->
     getOpenPulls msg, (allPullRequests) ->
       if allPullRequests.items.length is 0

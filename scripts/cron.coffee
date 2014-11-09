@@ -14,12 +14,15 @@ module.exports = (robot) ->
   robot.brain.data.cronJobs ?= {}
 
   robot.on "cron created", (cron) ->
-    console.log cron
-    job = new Job cron.pattern, cron.url, cron.timezone, cron.description
-    job.createCron()
-    job.startJob()
-    save job
-    JOBS[job.id] = job
+    result = _.where(robot.brain.data.cronJobs, {pattern: cron.pattern, url: cron.url, timezone: cron.timezone, description: cron.description})
+    # === Ensures job is not already in database
+    console.log result
+    unless result[0]?
+      job = new Job cron.pattern, cron.url, cron.timezone, cron.description
+      job.createCron()
+      job.startJob()
+      save job
+      JOBS[job.id] = job
 
   robot.brain.on 'loaded', () ->
     console.log "DB HAS LOADED"
@@ -51,7 +54,7 @@ module.exports = (robot) ->
 
   robot.respond /cron roomer/i, (msg) ->
     pattern = "*/10 * * * * *"
-    pattern = "00 44 17 * * 0"
+    pattern = "00 30 9 * * 1-5"
     url = "#{process.env.HEROKU_URL}/hubot/roomtest"
     timezone = "America/New_York"
     description = "Crons room message"
@@ -78,10 +81,10 @@ module.exports = (robot) ->
       msg.send "Error: The job number you entered is either not running or does not exist"
 
   robot.respond /l(ist)? jobs/i, (msg) ->
-    if robot.brain.data.cronJobs.key?
-      msg.send stringifyJobs()
-    else
-      msg.send "There are currently no jobs in my brain"
+    # if robot.brain.data.cronJobs.key?
+    msg.send stringifyJobs()
+    # else
+    #   msg.send "There are currently no jobs in my brain"
 
   robot.respond /s(tart)? job (\d{7})/i, (msg) ->
     jobNumber =  msg.match[2]
