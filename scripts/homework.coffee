@@ -65,6 +65,7 @@ module.exports = (robot) ->
       console.log(noPullRequest)
 
   #==== Response patterns
+  
 
   robot.respond /close pr/i, (msg) ->
     getOpenPulls msg, (allPullRequests) ->

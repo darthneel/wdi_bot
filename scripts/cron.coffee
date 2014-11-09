@@ -52,7 +52,7 @@ module.exports = (robot) ->
 
 
   #===== Functions available for Cron ========
-  
+
   uptimePing = (optionsHash) ->
     msg = optionsHash["msg"]
     msg.http("#{process.env.HEROKU_URL}/hubot/ping")
