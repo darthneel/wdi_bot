@@ -15,7 +15,7 @@ module.exports = (robot) ->
 
   robot.on "cron created", (cron) ->
     console.log cron
-    job = new Job cron.pattern, cron.func, cron.timezone, cron.description
+    job = new Job cron.pattern, cron.func, cron.timezone, cron.description, cron.msg
     job.createCron()
     job.startJob()
     save job
@@ -58,8 +58,23 @@ module.exports = (robot) ->
     msg.http("#{process.env.HEROKU_URL}/hubot/ping")
       .post() (err, res, body) ->
         console.log(body)
-# http://fathomless-garden-6223.herokuapp.com/hubot/ping
+
   # ===== Response patterns =====
+
+  robot.respond/cron rooomer/i, (msg) ->
+    pattern = "*/10 * * * * *"
+    func = (msg) ->
+      msg.http("#{process.env.HEROKU_URL}/hubot/roomtest")
+    timezone = "America/New_York"
+
+    robot.emit "cron created", {
+      pattern: pattern,
+      func: func
+      timezone: timezone
+      description: "Messages room"
+      msg: msg
+      }
+
 
   robot.respond /cron ping/i, (msg) ->
     pattern = "0 0,10,20,30,40,50 * * * *"
@@ -100,27 +115,13 @@ module.exports = (robot) ->
       msg.send "Error: The job number you entered is either already running or does not exist"
       msg.send "Use the command 'l all jobs' to check the job number"
 
-  # robot.respond /start job (\d{1}) - ((\*?(\/?\d+)? ?){6})/i, (msg) ->
-  #   jobNumber = msg.match[1]
-  #   pattern = msg.match[2]
-  #   if pattern.split(" ").length isnt 6
-  #     msg.send "Crontab pattern is not valid, please try again"
-  #   else
-  #     job = robot.brain.data.potentialJobs[msg.match[1] - 1]
-  #     newJob = new Job pattern, job.function
-  #     newJob.createCron {"msg": msg}
-  #     newJob.save robot
-  #     newJob.startJob()
-  #
-  #     msg.send "Cron Job for #{job.name} has been started!"
-
   robot.respond /clear brain/i, (msg) ->
     robot.brain.data.cronJobs = {}
 
 # ======= Class definitions =======
 
 class Job
-  constructor: (@pattern, @func, @timezone, @description, running) ->
+  constructor: (@pattern, @func, @timezone, @description, @msg, running) ->
     @id = this.generateID()
     @running = running or false
 
@@ -136,10 +137,10 @@ class Job
     @cronJob.stop()
     @running = false
 
-  createCron: (optionsHash) ->
+  createCron: () ->
     console.log "in create"
     @cronJob = new CronJob @pattern, =>
-      @func(optionsHash)
+      @func(@msg)
     , ->
       console.log "job ended"
     , false
