@@ -47,11 +47,11 @@ module.exports = (robot) ->
       reply
     , ""
 
-
   # ===== Response patterns =====
 
   robot.respond /cron roomer/i, (msg) ->
     pattern = "*/10 * * * * *"
+    pattern = "00 44 17 * * 0"
     url = "#{process.env.HEROKU_URL}/hubot/roomtest"
     timezone = "America/New_York"
     description = "Crons room message"
@@ -78,7 +78,10 @@ module.exports = (robot) ->
       msg.send "Error: The job number you entered is either not running or does not exist"
 
   robot.respond /l(ist)? jobs/i, (msg) ->
-    msg.send stringifyJobs()
+    if robot.brain.data.cronJobs.key?
+      msg.send stringifyJobs()
+    else
+      msg.send "There are currently no jobs in my brain"
 
   robot.respond /s(tart)? job (\d{7})/i, (msg) ->
     jobNumber =  msg.match[2]
