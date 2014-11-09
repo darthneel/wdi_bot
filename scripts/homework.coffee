@@ -95,7 +95,7 @@ module.exports = (robot) ->
     students = studentsHash()
     res.end "#{students}"
 
-  robot.router. get "/hubot/roomtest", (req, res) ->
+  robot.router.get "/hubot/roomtest", (req, res) ->
     room = process.env.HUBOT_HIPCHAT_ROOMS
     now = moment()
     weekdays = [0..5]
