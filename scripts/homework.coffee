@@ -96,7 +96,7 @@ module.exports = (robot) ->
     res.end "#{students}"
 
   robot.router. get "/hubot/roomtest", (req, res) ->
-    room = process.END.HUBOT_HIPCHAT_ROOMS
+    room = process.env.HUBOT_HIPCHAT_ROOMS
     robot.messageRoom(room, 'Hello room!')
 
   robot.respond /close all pr/i, (msg) ->
