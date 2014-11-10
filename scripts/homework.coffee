@@ -161,8 +161,8 @@ module.exports = (robot) ->
     weekdays = [0..5]
     if (moment.tz now.format(), "America/New_York").day() in weekdays
       checkHW()
-      closeAllPullRequests("msg")
-      robot.messageRoom instructorRoom, "Update: Students have been reminded to submit their homework before 9:30am"
+      # closeAllPullRequests("msg")
+      # robot.messageRoom instructorRoom, "Update: Students have been reminded to submit their homework before 9:30am"
       res.end "Response sent to room"
     else
       res.end "Wrong day!"
