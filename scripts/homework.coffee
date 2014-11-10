@@ -109,9 +109,12 @@ module.exports = (robot) ->
     else
       date = (now.subtract 3, 'day').format "YYYY-MM-DD"
 
+    console.log date
+
     students = studentsHash()
 
     getOpenPulls msg, (allPullRequests) ->
+      console.log "in get open pulls"
       _.each students, (student) ->
 
         payload = {
@@ -134,6 +137,7 @@ module.exports = (robot) ->
         robot.http("http://app.ga-instructors.com/api/courses/#{process.env.COURSE_ID}/homework?email=#{process.env.EMAIL}&auth_token=#{process.env.WDI_AUTH_TOKEN}")
           .headers("Content-Type": "application/json")
           .put( JSON.stringify(payload) ) (err, response, body) ->
+            console.log "made api call"
             throw err if err
             if msg?
               msg.send "HW updated for #{student["fname"]} #{student["lname"]}"
