@@ -161,7 +161,7 @@ module.exports = (robot) ->
     studentRoom = process.env.HUBOT_STUDENT_ROOM
     instructorRoom = process.env.HUBOT_INSTRUCTOR_ROOM
     now = moment()
-    weekdays = [1..5]
+    weekdays = [0..5]
     if (moment.tz now.format(), "America/New_York").day() in weekdays
       checkHW()
       closeAllPullRequests("msg")
