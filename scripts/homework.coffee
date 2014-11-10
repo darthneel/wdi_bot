@@ -71,21 +71,22 @@ module.exports = (robot) ->
   closePullRequest = (msg, pullRequest) ->
     url = pullRequest.pull_request.url
     queryString = JSON.stringify("commit_message": "merged")
-    instructorRoom = process.env.HUBOT_INSTRUCTOR_ROOM
     robot.http(url + "/merge?access_token=#{process.env.HUBOT_GITHUB_TOKEN}")
       .headers("User-Agent": "#{process.env.GITHUB_USER_NAME}")
       .put(queryString) (err, response, body) ->
         throw err if err
         if typeof msg is 'string'
-          robot.messageRoom instructorRoom "Pull request for user #{pullRequest.user.login} has been closed"
+          robot.messageRoom process.env.HUBOT_INSTRUCTOR_ROOM "Pull request for user #{pullRequest.user.login} has been closed"
         else
           msg.send "Pull request for user #{pullRequest.user.login} has been closed"
 
   closeAllPullRequests = (msg) ->
     getOpenPulls msg, (allPullRequests) ->
       if allPullRequests.items.length is 0
-        if msg?
+        if msg? and typeof msg is string
           msg.send "No open pull requests at this time"
+        else
+          robot.messageRoom process.env.HUBOT_INSTRUCTOR_ROOM, "No open pull requests at this time"
       else
         _.each allPullRequests.items, (pullRequest) ->
           closePullRequest(msg, pullRequest)
@@ -152,7 +153,7 @@ module.exports = (robot) ->
     studentRoom = process.env.HUBOT_STUDENT_ROOM
     instructorRoom = process.env.HUBOT_INSTRUCTOR_ROOM
     now = moment()
-    weekdays = [0..5]
+    weekdays = [1..5]
     if (moment.tz now.format(), "America/New_York").day() in weekdays
       robot.messageRoom studentRoom, "Reminder: Please submit yesterday's work before 9:30am"
       robot.messageRoom instructorRoom, "Update: Students have been reminded to submit their homework before 9:30am"
@@ -164,7 +165,7 @@ module.exports = (robot) ->
     studentRoom = process.env.HUBOT_STUDENT_ROOM
     instructorRoom = process.env.HUBOT_INSTRUCTOR_ROOM
     now = moment()
-    weekdays = [0..5]
+    weekdays = [1..5]
     if (moment.tz now.format(), "America/New_York").day() in weekdays
       checkHW()
       closeAllPullRequests("msg")
