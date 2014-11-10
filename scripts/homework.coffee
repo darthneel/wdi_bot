@@ -102,6 +102,7 @@ module.exports = (robot) ->
       msg.send "Students with no open pull requests: \n #{noPullRequest.join('\n')}"
 
   checkHW = (msg) ->
+    console.log "checking!"
     now = moment()
     if (moment.tz now.format(), "America/New_York").day() isnt 1
       date = (now.subtract 1, 'day').format "YYYY-MM-DD"
