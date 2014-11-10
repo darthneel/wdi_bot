@@ -52,23 +52,6 @@ module.exports = (robot) ->
 
   # ===== Response patterns =====
 
-  robot.respond /cron roomer/i, (msg) ->
-    pattern = "*/10 * * * * *"
-    pattern = "00 30 9 * * 1-5"
-    url = "#{process.env.HEROKU_URL}/hubot/roomtest"
-    timezone = "America/New_York"
-    description = "Crons room message"
-
-    robot.emit "cron created", {
-      pattern: pattern,
-      url: url,
-      timezone: timezone,
-      description: "Messages room",
-      }
-
-  robot.respond /l(ist)? active jobs/i, (msg) ->
-    console.log robot.brain.data.cronJobs
-
   robot.respond /k(ill)? job (\d{7})/i, (msg) ->
     jobNumber =  msg.match[2]
     job = JOBS[jobNumber]
