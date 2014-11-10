@@ -144,7 +144,7 @@ module.exports = (robot) ->
 
   robot.router.get "/hubot/morningmessage", (req, res) ->
     studentRoom = process.env.HUBOT_STUDENT_ROOM
-    instructorRoom = process.end.HUBOT_INSTRUCTOR_ROOM
+    instructorRoom = process.env.HUBOT_INSTRUCTOR_ROOM
     now = moment()
     weekdays = [0..5]
     if (moment.tz now.format(), "America/New_York").day() in weekdays
