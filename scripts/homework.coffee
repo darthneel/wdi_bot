@@ -103,48 +103,44 @@ module.exports = (robot) ->
       msg.send "Students with no open pull requests: \n #{noPullRequest.join('\n')}"
 
   checkHW = (msg) ->
-    console.log "checking!"
     now = moment()
     if (moment.tz now.format(), "America/New_York").day() isnt 1
       date = (now.subtract 1, 'day').format "YYYY-MM-DD"
     else
       date = (now.subtract 3, 'day').format "YYYY-MM-DD"
 
-    console.log date
 
     students = studentsHash()
 
     getOpenPulls msg, (allPullRequests) ->
-      console.log "in get open pulls"
-      _.each students, (student) ->
+      unless allPullRequests.items.length is 0
+        _.each students, (student) ->
 
-        payload = {
-          homework: {
-            student_id: student['id'],
-            date: date
+          payload = {
+            homework: {
+              student_id: student['id'],
+              date: date
+            }
           }
-        }
 
-        studentMatch = _.find(allPullRequests["items"], (pr) ->
-          pr["user"]["login"] is student["github"])
+          studentMatch = _.find(allPullRequests["items"], (pr) ->
+            pr["user"]["login"] is student["github"])
 
-        if studentMatch
-          payload["homework"]["completeness"] = (JSON.parse studentMatch["body"])["completeness"]
-          payload["homework"]["comfortability"] = (JSON.parse studentMatch["body"])["comfortability"]
-          payload["homework"]["status"] = "complete"
-        else
-          payload["homework"]["status"] = "incomplete"
+          if studentMatch
+            payload["homework"]["completeness"] = (JSON.parse studentMatch["body"])["completeness"]
+            payload["homework"]["comfortability"] = (JSON.parse studentMatch["body"])["comfortability"]
+            payload["homework"]["status"] = "complete"
+          else
+            payload["homework"]["status"] = "incomplete"
 
-        robot.http("http://app.ga-instructors.com/api/courses/#{process.env.COURSE_ID}/homework?email=#{process.env.EMAIL}&auth_token=#{process.env.WDI_AUTH_TOKEN}")
-          .headers("Content-Type": "application/json")
-          .put( JSON.stringify(payload) ) (err, response, body) ->
-            console.log "made api call"
-            console.log response
-            throw err if err
-            if msg?
-              msg.send "HW updated for #{student["fname"]} #{student["lname"]}"
-            else
-              robot.messageRoom process.env.HUBOT_INSTRUCTOR_ROOM, "HW updated for #{student["fname"]} #{student["lname"]}"
+          robot.http("http://app.ga-instructors.com/api/courses/#{process.env.COURSE_ID}/homework?email=#{process.env.EMAIL}&auth_token=#{process.env.WDI_AUTH_TOKEN}")
+            .headers("Content-Type": "application/json")
+            .put( JSON.stringify(payload) ) (err, response, body) ->
+              throw err if err
+              if msg?
+                msg.send "HW updated for #{student["fname"]} #{student["lname"]}"
+              else
+                robot.messageRoom process.env.HUBOT_INSTRUCTOR_ROOM, "HW updated for #{student["fname"]} #{student["lname"]}"
 
 
   #===== HTTP Routes
