@@ -138,6 +138,7 @@ module.exports = (robot) ->
           .headers("Content-Type": "application/json")
           .put( JSON.stringify(payload) ) (err, response, body) ->
             console.log "made api call"
+            console.log response
             throw err if err
             if msg?
               msg.send "HW updated for #{student["fname"]} #{student["lname"]}"
