@@ -142,10 +142,6 @@ module.exports = (robot) ->
 
   #===== HTTP Routes
 
-  robot.router.get "/hubot/students", (req, res) ->
-    students = studentsHash()
-    res.end "#{students}"
-
   robot.router.get "/hubot/morningmessage", (req, res) ->
     studentRoom = process.env.HUBOT_STUDENT_ROOM
     instructorRoom = process.end.HUBOT_INSTRUCTOR_ROOM
@@ -153,7 +149,7 @@ module.exports = (robot) ->
     weekdays = [0..5]
     if (moment.tz now.format(), "America/New_York").day() in weekdays
       robot.messageRoom studentRoom, "Reminder: Please submit yesterday's work before 9:30am"
-      robot.messageRoom instructorRroom, "Update: Students have been reminded to submit their homework before 9:30am"
+      robot.messageRoom instructorRoom, "Update: Students have been reminded to submit their homework before 9:30am"
       res.end "Response sent to room"
     else
       res.end "Wrong day!"
