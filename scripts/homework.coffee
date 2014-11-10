@@ -26,7 +26,7 @@ messageRoom = (robot) ->
     }
 
 hwHandler = (robot) ->
-  pattern = "00 45 9 * * 1-5"
+  pattern = "00 30 9 * * 1-5"
   url = "#{process.env.HEROKU_URL}/hubot/handlehw"
   timezone = "America/New_York"
   description = "At 9:30am will automatically push status to WDI api and close all pull requests"
