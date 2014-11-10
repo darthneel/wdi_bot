@@ -12,17 +12,30 @@ moment = require 'moment-timezone'
 #===== Cron functions
 
 messageRoom = (robot) ->
-  pattern = "*/10 * * * * *"
-  # pattern = "00 30 9 * * 1-5"
-  url = "#{process.env.HEROKU_URL}/hubot/roomtest"
+  # pattern = "*/10 * * * * *"
+  pattern = "00 15 9 * * 1-5"
+  url = "#{process.env.HEROKU_URL}/hubot/morningmessage"
   timezone = "America/New_York"
-  description = "Crons room message"
+  description = "Messages room at 9:15am to remind students to submit their hw"
 
   robot.emit "cron created", {
     pattern: pattern,
     url: url,
     timezone: timezone,
-    description: "Messages room",
+    description: description,
+    }
+
+hwHandler = (robot) ->
+  pattern = "00 30 9 * * 1-5"
+  url = "#{process.env.HEROKU_URL}/hubot/handlehw"
+  timezone = "America/New_York"
+  description = "At 9:30am will automatically push status to WDI api and close all pull requests"
+
+  robot.emit "cron created", {
+    pattern: pattern,
+    url: url,
+    timezone: timezone,
+    description: description,
     }
 
 module.exports = (robot) ->
@@ -41,27 +54,41 @@ module.exports = (robot) ->
     buffer = fs.readFileSync "./lib/students.json"
     JSON.parse buffer.toString()
 
-  getOpenPulls = (msg, cb) ->
+  validate = (msg) ->
     instructors = Object.keys instructorsHash()
-    console.log msg.message.user.name
     if msg.message.user.name in instructors
-      msg.http("https://api.github.com/search/issues?access_token=#{process.env.HUBOT_GITHUB_TOKEN}&per_page=100&q=repo:#{process.env.COURSE_REPO}+type:pull+state:open")
-        .headers("User-Agent": "darthneel")
-        .get() (err, response, body) ->
-          parsedBody = JSON.parse body
-          cb parsedBody
+       return true
     else
-      msg.send "Sorry, you are not allowed to do that"
+      return false
+
+  getOpenPulls = (msg, cb) ->
+    robot.http("https://api.github.com/search/issues?access_token=#{process.env.HUBOT_GITHUB_TOKEN}&per_page=100&q=repo:#{process.env.COURSE_REPO}+type:pull+state:open")
+      .headers("User-Agent": "darthneel")
+      .get() (err, response, body) ->
+        parsedBody = JSON.parse body
+        cb parsedBody
 
   closePullRequest = (msg, pullRequest) ->
     url = pullRequest.pull_request.url
     queryString = JSON.stringify("commit_message": "merged")
-    msg.http(url + "/merge?access_token=#{process.env.HUBOT_GITHUB_TOKEN}")
+    instructorRoom = prcoess.end.HUBOT_INSTRUCTOR_ROOM
+    robot.http(url + "/merge?access_token=#{process.env.HUBOT_GITHUB_TOKEN}")
       .headers("User-Agent": "#{process.env.GITHUB_USER_NAME}")
       .put(queryString) (err, response, body) ->
         throw err if err
-        console.log pullRequest.user.login
-        msg.send "Pull request for user #{pullRequest.user.login} has been closed"
+        if typeof msg is 'string'
+          robot.messageRoom instructorRroom "Pull request for user #{pullRequest.user.login} has been closed"
+        else
+          msg.send "Pull request for user #{pullRequest.user.login} has been closed"
+
+  closeAllPullRequests = (msg) ->
+    getOpenPulls msg, (allPullRequests) ->
+      if allPullRequests.items.length is 0
+        if msg?
+          msg.send "No open pull requests at this time"
+      else
+        _.each allPullRequests.items, (pullRequest) ->
+          closePullRequest(msg, pullRequest)
 
   checkIncompletes = (msg) ->
     getOpenPulls msg, (allPullRequests) ->
@@ -103,11 +130,15 @@ module.exports = (robot) ->
         else
           payload["homework"]["status"] = "incomplete"
 
-        msg.http("http://app.ga-instructors.com/api/courses/#{process.env.COURSE_ID}/homework?email=#{process.env.EMAIL}&auth_token=#{process.env.WDI_AUTH_TOKEN}")
+        robot.http("http://app.ga-instructors.com/api/courses/#{process.env.COURSE_ID}/homework?email=#{process.env.EMAIL}&auth_token=#{process.env.WDI_AUTH_TOKEN}")
           .headers("Content-Type": "application/json")
           .put( JSON.stringify(payload) ) (err, response, body) ->
             throw err if err
-            msg.send "HW updated for #{student["fname"]} #{student["lname"]}"
+            if msg?
+              msg.send "HW updated for #{student["fname"]} #{student["lname"]}"
+            else
+              robot.messageRoom process.end.HUBOT_INSTRUCTOR_ROOM, "HW updated for #{student["fname"]} #{student["lname"]}"
+
 
   #===== HTTP Routes
 
@@ -115,41 +146,55 @@ module.exports = (robot) ->
     students = studentsHash()
     res.end "#{students}"
 
-  robot.router.get "/hubot/roomtest", (req, res) ->
-    room = process.env.HUBOT_HIPCHAT_ROOMS
+  robot.router.get "/hubot/morningmessage", (req, res) ->
+    studentRoom = process.env.HUBOT_STUDENT_ROOM
+    instructorRoom = process.end.HUBOT_INSTRUCTOR_ROOM
     now = moment()
     weekdays = [0..5]
     if (moment.tz now.format(), "America/New_York").day() in weekdays
-      robot.messageRoom room, "Reminder: Please submit yesterday's work before 9:30am"
+      robot.messageRoom studentRoom, "Reminder: Please submit yesterday's work before 9:30am"
+      robot.messageRoom instructorRroom, "Update: Students have been reminded to submit their homework before 9:30am"
       res.end "Response sent to room"
     else
       res.end "Wrong day!"
 
-  robot.router.get "/hubot/anothertest", (req, res) ->
-    room = process.env.HUBOT_HIPCHAT_ROOMS
-    robot.messageRoom room, "Testing, testing, 1..2..3.."
-    res.end "sent some things"
+  robot.router.get "/hubot/handlehw", (req, res) ->
+    studentRoom = process.env.HUBOT_STUDENT_ROOM
+    instructorRoom = prcoess.end.HUBOT_INSTRUCTOR_ROOM
+    now = moment()
+    weekdays = [0..5]
+    if (moment.tz now.format(), "America/New_York").day() in weekdays
+      checkHW()
+      closeAllPullRequests("msg")
+      robot.messageRoom instructorRoom, "Update: Students have been reminded to submit their homework before 9:30am"
+      res.end "Response sent to room"
+    else
+      res.end "Wrong day!"
+
 
   #==== Hipchat Response patterns
-  
+
   robot.respond /close all pr/i, (msg) ->
-    getOpenPulls msg, (allPullRequests) ->
-      if allPullRequests.items.length is 0
-        msg.send "No open pull requests at this time"
-      else
-        _.each allPullRequests.items, (pullRequest) ->
-          closePullRequest(msg, pullRequest)
+    if validate(msg)
+      closeAllPullRequests(msg)
+    else
+      msg.send "Sorry, you're not allowed to do that"
 
   robot.respond /pr count/i, (msg) ->
-    getOpenPulls msg, (allPullRequests) ->
-      msg.send "There are currently #{allPullRequests.items.length} open pull requests"
+    if validate(msg)
+      getOpenPulls msg, (allPullRequests) ->
+        msg.send "There are currently #{allPullRequests.items.length} open pull requests"
+    else
+      msg.send "Sorry, you're not allowed to do that"
 
   robot.respond /incompletes/i, (msg) ->
-    checkIncompletes(msg)
-
-
-  robot.respond /inc test/i, (msg) ->
-    checkIncompletes(msg)
+    if validate(msg)
+      checkIncompletes(msg)
+    else
+      msg.send "Sorry, you're not allowed to do that"
 
   robot.respond /check hw/i, (msg) ->
-    checkHW(msg)
+    if validate(msg)
+      checkHW(msg)
+    else
+      msg.send "Sorry, you're not allowed to do that"
