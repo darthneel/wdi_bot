@@ -71,13 +71,13 @@ module.exports = (robot) ->
   closePullRequest = (msg, pullRequest) ->
     url = pullRequest.pull_request.url
     queryString = JSON.stringify("commit_message": "merged")
-    instructorRoom = prcoess.end.HUBOT_INSTRUCTOR_ROOM
+    instructorRoom = process.env.HUBOT_INSTRUCTOR_ROOM
     robot.http(url + "/merge?access_token=#{process.env.HUBOT_GITHUB_TOKEN}")
       .headers("User-Agent": "#{process.env.GITHUB_USER_NAME}")
       .put(queryString) (err, response, body) ->
         throw err if err
         if typeof msg is 'string'
-          robot.messageRoom instructorRroom "Pull request for user #{pullRequest.user.login} has been closed"
+          robot.messageRoom instructorRoom "Pull request for user #{pullRequest.user.login} has been closed"
         else
           msg.send "Pull request for user #{pullRequest.user.login} has been closed"
 
@@ -143,7 +143,7 @@ module.exports = (robot) ->
             if msg?
               msg.send "HW updated for #{student["fname"]} #{student["lname"]}"
             else
-              robot.messageRoom process.end.HUBOT_INSTRUCTOR_ROOM, "HW updated for #{student["fname"]} #{student["lname"]}"
+              robot.messageRoom process.env.HUBOT_INSTRUCTOR_ROOM, "HW updated for #{student["fname"]} #{student["lname"]}"
 
 
   #===== HTTP Routes
