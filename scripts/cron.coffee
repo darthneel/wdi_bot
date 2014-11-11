@@ -46,7 +46,7 @@ module.exports = (robot) ->
     list = robot.brain.data.cronJobs
     _.reduce list, (reply, job, id) ->
       reply += "\n"
-      reply += "Job Number: #{id} - #{job.description}. Currently Running: #{job.running}"
+      reply += "Job Number: #{id} - #{job.description}. \n\t Currently Running: #{job.running}"
       reply
     , ""
 
@@ -62,12 +62,13 @@ module.exports = (robot) ->
       msg.send "Job #{job.id} has been stopped"
     else
       msg.send "Error: The job number you entered is either not running or does not exist"
+      msg.send "Use the command 'l jobs' to check the job number"
 
   robot.respond /l(ist)? jobs/i, (msg) ->
-    # if robot.brain.data.cronJobs.key?
-    msg.send stringifyJobs()
-    # else
-    #   msg.send "There are currently no jobs in my brain"
+    if Object.keys(robot.brain.data.cronJobs).length == 0
+      msg.send "There are currently no jobs in my brain"
+    else
+      msg.send stringifyJobs()
 
   robot.respond /s(tart)? job (\d{7})/i, (msg) ->
     jobNumber =  msg.match[2]
@@ -79,11 +80,11 @@ module.exports = (robot) ->
       msg.send "Job #{job.id} has been started"
     else
       msg.send "Error: The job number you entered is either already running or does not exist"
-      msg.send "Use the command 'l all jobs' to check the job number"
+      msg.send "Use the command 'l jobs' to check the job number"
 
   robot.respond /clear brain/i, (msg) ->
     robot.brain.data.cronJobs = {}
-
+    msg.send "Brain has been cleared"
 # ======= Class definitions =======
 
 class Job
