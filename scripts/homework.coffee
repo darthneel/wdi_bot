@@ -78,7 +78,7 @@ module.exports = (robot) ->
     list = robot.brain.data.hwReport[dueDate]
     _.reduce list, (reply, status, name) ->
       reply += "\n"
-      reply += "#{name}: #{status}"
+      reply += "#{name} - #{status}"
       reply
     , ""
 
