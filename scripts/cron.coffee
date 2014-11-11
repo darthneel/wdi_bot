@@ -46,7 +46,7 @@ module.exports = (robot) ->
     list = robot.brain.data.cronJobs
     _.reduce list, (reply, job, id) ->
       reply += "\n"
-      reply += "Job Number: #{id} - #{job.description}. \n\t Currently Running: #{job.running}"
+      reply += "\n Job Number: #{id} - #{job.description}. \n Currently Running: #{job.running}"
       reply
     , ""
 
