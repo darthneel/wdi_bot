@@ -22,12 +22,21 @@ module.exports = (robot) ->
           throw err if err
           msg.send "Students have been set"
 
-  robot.respond /get students/i, (msg) ->
+  robot.respond /get students hash/i, (msg) ->
     fs.readFile "./lib/students.json", (err, data) ->
       msg.send "/code " + data.toString()
 
+  robot.respond /get students arr/i, (msg) ->
+    fs.readFile "./lib/students.json", (err, data) ->
+      # console.log typeof data.toString()
+      arr = _.map JSON.parse(data.toString()), (student) ->
+        # console.log student
+        "#{student["fname"]} #{student["lname"]}"
+      # console.log arr
+      msg.send "/code " + JSON.stringify arr
+
   robot.respond /set instructors/i, (msg) ->
-    hash = {"Neel Patel": "darthneel", "Jeff Konowitch": "jkonowitch", "Sean West": "sean-west" }
+    hash = {"Neel Patel": "darthneel", "Jeff Konowitch": "jkonowitch", "Andrew Fritz": "andrewfritz86"}
     json = JSON.stringify(hash)
     fs.writeFile "./lib/instructors.json", json, (err) ->
       throw err if err
