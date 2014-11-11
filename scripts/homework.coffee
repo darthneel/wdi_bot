@@ -40,6 +40,9 @@ hwHandler = (robot) ->
 
 module.exports = (robot) ->
 
+  robot.brain.data.hwReport ?= {}
+
+
   #==== Initiate all Cron jobs once database has connected
   robot.brain.on 'loaded', () ->
     messageRoom(robot)
@@ -58,9 +61,26 @@ module.exports = (robot) ->
   validate = (msg) ->
     instructors = Object.keys instructorsHash()
     if msg.message.user.name in instructors
-       return true
+      return true
     else
       return false
+
+  hwDueDate = () ->
+    now = moment()
+    if (moment.tz now.format(), "America/New_York").day() isnt 1
+      date = (now.subtract 1, 'day').format "YYYY-MM-DD"
+    else
+      date = (now.subtract 3, 'day').format "YYYY-MM-DD"
+    return date
+
+  stringifyHWReport = (date) ->
+    dueDate = date or hwDueDate()
+    list = robot.brain.data.hwReport[dueDate]
+    _.reduce list, (reply, status, name) ->
+      reply += "\n"
+      reply += "#{name}: #{status}"
+      reply
+    , ""
 
   getOpenPulls = (msg, cb) ->
     robot.http("https://api.github.com/search/issues?access_token=#{process.env.HUBOT_GITHUB_TOKEN}&per_page=100&q=repo:#{process.env.COURSE_REPO}+type:pull+state:open")
@@ -84,10 +104,10 @@ module.exports = (robot) ->
   closeAllPullRequests = (msg) ->
     getOpenPulls msg, (allPullRequests) ->
       if allPullRequests.items.length is 0
-        if msg? and typeof msg is string
+        if msg? and typeof msg not "string"
           msg.send "No open pull requests at this time"
         else
-          robot.messageRoom process.env.HUBOT_INSTRUCTOR_ROOM, "No open pull requests at this time"
+          robot.messageRoom process.env.HUBOT_INSTRUCTOR_ROOM, "Update: There are no open pull requests at this time"
       else
         _.each allPullRequests.items, (pullRequest) ->
           closePullRequest(msg, pullRequest)
@@ -114,35 +134,41 @@ module.exports = (robot) ->
     students = studentsHash()
 
     getOpenPulls msg, (allPullRequests) ->
-      unless allPullRequests.items.length is 0
-        _.each students, (student) ->
+      # unless allPullRequests.items.length is 0
+      _.each students, (student) ->
 
-          payload = {
-            homework: {
-              student_id: student['id'],
-              date: date
-            }
+        payload = {
+          homework: {
+            student_id: student['id'],
+            date: date
           }
+        }
 
-          studentMatch = _.find(allPullRequests["items"], (pr) ->
-            pr["user"]["login"] is student["github"])
+        studentMatch = _.find(allPullRequests["items"], (pr) ->
+          pr["user"]["login"] is student["github"])
 
-          if studentMatch
-            payload["homework"]["completeness"] = (JSON.parse studentMatch["body"])["completeness"]
-            payload["homework"]["comfortability"] = (JSON.parse studentMatch["body"])["comfortability"]
-            payload["homework"]["status"] = "complete"
-          else
-            payload["homework"]["status"] = "incomplete"
+        if studentMatch
+          payload["homework"]["completeness"] = (JSON.parse studentMatch["body"])["completeness"]
+          payload["homework"]["comfortability"] = (JSON.parse studentMatch["body"])["comfortability"]
+          payload["homework"]["status"] = "complete"
 
-          robot.http("http://app.ga-instructors.com/api/courses/#{process.env.COURSE_ID}/homework?email=#{process.env.EMAIL}&auth_token=#{process.env.WDI_AUTH_TOKEN}")
-            .headers("Content-Type": "application/json")
-            .put( JSON.stringify(payload) ) (err, response, body) ->
-              throw err if err
-              if msg?
-                msg.send "HW updated for #{student["fname"]} #{student["lname"]}"
-              else
-                robot.messageRoom process.env.HUBOT_INSTRUCTOR_ROOM, "HW updated for #{student["fname"]} #{student["lname"]}"
+          robot.brain.data.hwReport[hwDueDate()]["#{student["fname"]} #{student["lname"]}"] = "complete"
+        else
+          payload["homework"]["status"] = "incomplete"
 
+          robot.brain.data.hwReport[hwDueDate()]["#{student["fname"]} #{student["lname"]}"] = "incomplete"
+
+
+        robot.http("http://app.ga-instructors.com/api/courses/#{process.env.COURSE_ID}/homework?email=#{process.env.EMAIL}&auth_token=#{process.env.WDI_AUTH_TOKEN}")
+          .headers("Content-Type": "application/json")
+          .put( JSON.stringify(payload) ) (err, response, body) ->
+            throw err if err
+            if msg?
+              msg.send "HW updated for #{student["fname"]} #{student["lname"]}"
+            else
+              console.log "HW updated for #{student["fname"]} #{student["lname"]}"
+
+      robot.messageRoom process.env.HUBOT_INSTRUCTOR_ROOM,"Update: HW information for yesterday has been updated. Use command 'hw report' to review"
 
   #===== HTTP Routes
 
@@ -164,15 +190,18 @@ module.exports = (robot) ->
     now = moment()
     weekdays = [0..5]
     if (moment.tz now.format(), "America/New_York").day() in weekdays
+      unless robot.brain.data.hwReport[hwDueDate()]?
+        robot.brain.data.hwReport[hwDueDate()] = {}
       checkHW()
       closeAllPullRequests("msg")
-      # robot.messageRoom instructorRoom, "Update: Students have been reminded to submit their homework before 9:30am"
       res.end "Response sent to room"
     else
       res.end "Wrong day!"
 
-
   #==== Hipchat Response patterns
+
+  robot.respond /test date/i, (msg) ->
+    console.log hwDueDate()
 
   robot.respond /close all pr/i, (msg) ->
     if validate(msg)
@@ -198,3 +227,12 @@ module.exports = (robot) ->
       checkHW(msg)
     else
       msg.send "Sorry, you're not allowed to do that"
+
+  robot.respond /hw report/i, (msg) ->
+    dueDate = hwDueDate()
+    unless validate(msg) is false
+      if !robot.brain.data.hwReport[dueDate]? or Object.keys(robot.brain.data.hwReport[dueDate]) == 0
+        msg.send "There is no hw data for this date. Please ensure hw was actually due today"
+      else
+        msg.send "Todays HW Completion Data"
+        msg.send stringifyHWReport(dueDate)
