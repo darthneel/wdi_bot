@@ -235,4 +235,5 @@ module.exports = (robot) ->
         msg.send "There is no hw data for this date. Please ensure hw was actually due today."
       else
         msg.send "Todays HW Completion Data"
+        msg.send "\n"
         msg.send stringifyHWReport(dueDate)
