@@ -168,7 +168,7 @@ module.exports = (robot) ->
             else
               console.log "HW updated for #{student["fname"]} #{student["lname"]}"
 
-      robot.messageRoom process.env.HUBOT_INSTRUCTOR_ROOM,"Update: HW information for yesterday has been updated. Use command 'hw report' to review"
+      robot.messageRoom process.env.HUBOT_INSTRUCTOR_ROOM,"Update: HW information for yesterday has been updated. Use command 'hw report' to review."
 
   #===== HTTP Routes
 
@@ -232,7 +232,7 @@ module.exports = (robot) ->
     dueDate = hwDueDate()
     unless validate(msg) is false
       if !robot.brain.data.hwReport[dueDate]? or Object.keys(robot.brain.data.hwReport[dueDate]) == 0
-        msg.send "There is no hw data for this date. Please ensure hw was actually due today"
+        msg.send "There is no hw data for this date. Please ensure hw was actually due today."
       else
         msg.send "Todays HW Completion Data"
         msg.send stringifyHWReport(dueDate)
