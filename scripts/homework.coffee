@@ -38,6 +38,8 @@ hwHandler = (robot) ->
     description: description,
     }
 
+#=== Starts export function
+
 module.exports = (robot) ->
 
   robot.brain.data.hwReport ?= {}
@@ -199,9 +201,6 @@ module.exports = (robot) ->
       res.end "Wrong day!"
 
   #==== Hipchat Response patterns
-
-  robot.respond /test date/i, (msg) ->
-    console.log hwDueDate()
 
   robot.respond /close all pr/i, (msg) ->
     if validate(msg)
