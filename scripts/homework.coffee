@@ -233,6 +233,4 @@ module.exports = (robot) ->
       if !robot.brain.data.hwReport[dueDate]? or Object.keys(robot.brain.data.hwReport[dueDate]) == 0
         msg.send "There is no hw data for this date. Please ensure hw was actually due today."
       else
-        msg.send "Todays HW Completion Data"
-        msg.send "\n"
-        msg.send stringifyHWReport(dueDate)
+        msg.send "Todays HW Completion Data \n #{stringifyHWReport(dueDate)}""
