@@ -36,7 +36,7 @@ module.exports = (robot) ->
       msg.send "/code " + JSON.stringify arr
 
   robot.respond /set instructors/i, (msg) ->
-    hash = {"Neel Patel": "darthneel", "Jeff Konowitch": "jkonowitch", "Andrew Fritz": "andrewfritz86", "Erick Kramer": "theerickramer"}
+    hash = {"Neel Patel": "darthneel", "Jeff Konowitch": "jkonowitch", "Andrew Fritz": "andrewfritz86", "Eric Kramer": "theerickramer"}
     json = JSON.stringify(hash)
     fs.writeFile "./lib/instructors.json", json, (err) ->
       throw err if err
