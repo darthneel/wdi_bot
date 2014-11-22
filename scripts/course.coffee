@@ -43,11 +43,6 @@ module.exports = (robot) ->
   robot.respond /students test/i, (msg) ->
     setStudents()
 
-  robot.respond /read test/i, (msg) ->
-    buffer = fs.readFileSync "./lib/students.json"
-    parsedJSON = JSON.parse buffer.toString()
-    console.log parsedJSON
-
   robot.respond /set students/i, (msg) ->
     setStudents(msg)
 
@@ -58,8 +53,8 @@ module.exports = (robot) ->
 
   robot.respond /get students arr/i, (msg) ->
     buffer = fs.readFileSync "./lib/students.json"
-    parsedJSON = JSON.parse buffer.toString()
-    arr = _.map parsedJSON, (student) ->
+    hash = buffer.toString()
+    arr = _.map hash, (student) ->
       "#{student["fname"]} #{student["lname"]}"
     msg.send "/code " + arr
 
