@@ -53,10 +53,10 @@ module.exports = (robot) ->
 
   robot.respond /get students arr/i, (msg) ->
     buffer = fs.readFileSync "./lib/students.json"
-    hash = buffer.toString()
-    arr = _.map hash, (student) ->
+    parsedJSON = JSON.parse buffer.toString()
+    arr = _.map parsedJSON, (student) ->
       "#{student["fname"]} #{student["lname"]}"
-    msg.send "/code " + arr
+    msg.send "/code " + JSON.stringify arr
 
   robot.respond /set instructors/i, (msg) ->
     setInstructors(msg)
